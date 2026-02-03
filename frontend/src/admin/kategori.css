@@ -1,0 +1,184 @@
+/* ===== WRAPPER ===== */
+.kategori-container {
+  padding: 25px;
+  background: #fff;
+  min-height: 100vh;
+  width: 100%;
+  color: #1a1a1a;
+}
+
+/* ===== HEADER ===== */
+.kategori-header h1 {
+  color: #d00000;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  font-size: 42px;
+}
+
+.kategori-header h1::after {
+  content: "";
+  display: block;
+  width: 70px;
+  height: 4px;
+  background: #d00000;
+  margin-top: 10px;
+  border-radius: 999px;
+}
+
+.kategori-header p {
+  color: #444;
+  font-weight: 500;
+  margin-bottom: 18px;
+  max-width: 800px;
+  line-height: 1.5;
+}
+
+/* ===== FORM CARD ===== */
+.kategori-form-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  max-width: 980px;
+}
+
+.kategori-form {
+  display: grid;
+  gap: 12px;
+}
+
+.kategori-form input,
+.kategori-form textarea {
+  width: 100%;
+  background: #fff;              /* INI yang bikin gak hitam */
+  color: #111;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  padding: 12px 14px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.15s ease;
+}
+
+.kategori-form textarea {
+  resize: vertical;
+  min-height: 90px;
+}
+
+.kategori-form input:focus,
+.kategori-form textarea:focus {
+  border-color: #d00000;
+  box-shadow: 0 0 0 3px rgba(208,0,0,0.12);
+}
+
+/* ===== BUTTONS ===== */
+.kategori-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-action {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.15s ease;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: #d00000;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  filter: brightness(0.95);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #f1f1f1;
+  color: #222;
+}
+
+.btn-secondary:hover {
+  filter: brightness(0.98);
+}
+
+/* tombol kecil di tabel */
+.btn-mini {
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.btn-edit {
+  background: #d00000;
+  color: #fff;
+}
+
+.btn-delete {
+  background: #111;
+  color: #fff;
+}
+
+.btn-delete:hover {
+  filter: brightness(1.15);
+}
+
+/* ===== ERROR ===== */
+.kategori-error {
+  margin: 12px 0;
+  background: rgba(208,0,0,0.08);
+  border: 1px solid rgba(208,0,0,0.18);
+  color: #a00000;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  max-width: 980px;
+}
+
+/* ===== TABLE ===== */
+.kategori-table-container {
+  margin-top: 18px;
+  max-width: 980px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.kategori-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.kategori-table thead {
+  background: #d00000;
+  color: #fff;
+}
+
+.kategori-table th,
+.kategori-table td {
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.kategori-table tbody tr:hover {
+  background: #fff6f6;
+}
+
+.kategori-empty {
+  text-align: center;
+  padding: 18px;
+  color: #666;
+  font-weight: 600;
+}

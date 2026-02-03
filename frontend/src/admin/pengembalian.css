@@ -1,0 +1,118 @@
+.pengembalian-container {
+  padding: 25px;
+  background-color: #ffffff;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  color: #1a1a1a;
+}
+
+/* ===== HEADER ===== */
+.pengembalian-header h1 {
+  color: #d00000;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.pengembalian-header h1::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  background: #d00000;
+  margin-top: 10px;
+  border-radius: 10px;
+}
+
+.pengembalian-header p {
+  color: #444;
+  font-weight: 500;
+  margin-bottom: 25px;
+}
+
+/* ===== TABLE BOX ===== */
+.table-box {
+  background: #ffeccd;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+thead {
+  background-color: #d00000;
+}
+
+th {
+  padding: 14px;
+  color: #f5f3dc;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
+td {
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+  color: #333;
+}
+
+tbody tr:hover {
+  background-color: rgba(208, 0, 0, 0.05);
+}
+
+/* ===== STATUS ===== */
+.badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+}
+
+.badge.red {
+  color: #d00000;
+  border-color: rgba(208,0,0,0.4);
+}
+
+/* ===== FORM ===== */
+.select, .textarea {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 13px;
+  color: #333;
+}
+
+.textarea {
+  resize: vertical;
+}
+
+/* ===== BUTTON ===== */
+.btn-return {
+  background: #d00000;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-return:hover {
+  background: #a80000;
+}

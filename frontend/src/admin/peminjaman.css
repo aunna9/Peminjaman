@@ -1,0 +1,163 @@
+.peminjaman-container {
+  padding: 25px;
+  background-color: #ffffff;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  color: #1a1a1a;
+}
+
+/* ===== HEADER ===== */
+.peminjaman-header h1 {
+  color: #d00000;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.peminjaman-header h1::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  background: #d00000;
+  margin-top: 10px;
+  border-radius: 10px;
+}
+
+.peminjaman-header p {
+  color: #444;
+  font-weight: 500;
+  margin-bottom: 25px;
+}
+
+/* ===== ACTION BAR ===== */
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  width: 320px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #1a1a1a;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: #d00000;
+  box-shadow: 0 0 0 3px rgba(208, 0, 0, 0.12);
+}
+
+.select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #1a1a1a;
+}
+
+/* ===== TABLE BOX ===== */
+.table-box {
+  background: #ffeccd;
+  border-radius: 15px;
+  padding: 25px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  overflow-x: auto;
+}
+
+.table-box h2 {
+  margin-bottom: 16px;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1100px;
+}
+
+thead {
+  background-color: #d00000;
+}
+
+th {
+  padding: 14px;
+  color: #f5f3dc;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  font-size: 14px;
+  text-align: left;
+}
+
+tbody tr:hover {
+  background-color: rgba(208, 0, 0, 0.05);
+}
+
+/* ===== STATUS BADGE ===== */
+.badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  color: #333;
+}
+
+.badge.red {
+  border-color: rgba(208,0,0,0.45);
+  color: #d00000;
+}
+
+/* ===== ACTION BUTTON ===== */
+.btn-action {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-right: 6px;
+  white-space: nowrap;
+}
+
+.btn-detail {
+  background: #fff;
+  border: 1px solid #d00000;
+  color: #d00000;
+}
+
+.btn-approve {
+  background: #d00000;
+  color: #fff;
+}
+
+.btn-reject {
+  background: #fff;
+  border: 1px solid #333;
+  color: #333;
+}

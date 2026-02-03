@@ -1,0 +1,142 @@
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+/* ===== LOGIN CONTAINER (GELAP) ===== */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  /* Menggunakan background hitam pekat agar seragam */
+  background: #ffdfae; 
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+/* ===== LOGIN CARD (GELAP) ===== */
+.login-card {
+  background: #ffffff; /* Abu-abu sangat gelap agar kontras dengan background luar */
+  padding: 2.5rem;
+  border-radius: 16px;
+  /* Shadow pink lembut */
+  box-shadow: 0 10px 30px rgba(255, 46, 46, 0.356); 
+  width: 90%;
+  max-width: 400px;
+  border: 1px solid #333; /* Border tipis agar card terlihat */
+  text-align: center;
+}
+
+.login-header h2 {
+  margin: 0;
+  color: #d00000; /* Judul putih */
+  font-size: 1.8rem;
+  font-weight: 800;
+}
+
+.login-header p {
+  color: #888; 
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+/* ===== INPUT GROUP ===== */
+.input-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-weight: 600;
+  color: #d00000; /* Label warna pink neon */
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.85rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background-color: #ffb1b1; 
+  color: #ffffff;
+  transition: 0.3s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #d00000;
+  box-shadow: 0 0 8px rgba(255, 46, 99, 0.3);
+}
+
+.login-btn {
+  width: 100%;
+  padding: 1rem;
+  background: #d00000;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 10px;
+}
+
+.login-btn:hover {
+  background: #611111;
+  box-shadow: 0 0 20px rgba(255, 46, 99, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ===== ERROR ALERT ===== */
+.error-alert {
+  background: rgba(197, 48, 48, 0.1);
+  color: #feb2b2;
+  padding: 0.8rem;
+  border: 1px solid #c53030;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}

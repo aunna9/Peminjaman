@@ -1,0 +1,300 @@
+/* ===== CONTAINER UTAMA ===== */
+.alat-container {
+  padding: 25px;
+  background-color: #fcfcfc;
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  color: #1a1a1a;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ===== HEADER ===== */
+.alat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.alat-header h1 {
+  color: #d00000;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.alat-header h1::after {
+  content: "";
+  display: block;
+  width: 70px;
+  height: 4px;
+  background: #d00000;
+  margin-top: 10px;
+  border-radius: 999px;
+}
+
+.alat-form {
+  display: grid;
+  gap: 12px;
+}
+
+.alat-form h3 {
+  margin-top: 0;
+  color: #d00000;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.alat-form input,
+.alat-form select {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.form-grid input:focus, 
+.form-grid select:focus {
+  border-color: #d00000;
+  box-shadow: 0 0 0 3px rgba(208, 0, 0, 0.1);
+}
+
+.form-actions {
+  margin-top: 15px;
+}
+
+/* ===== TABLE BOX ===== */
+.table-box {
+  background: #ffeccd; /* Warna kuning muda sesuai request awal */
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  overflow-x: auto;
+}
+
+.alat-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.alat-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.alat-table th {
+  background-color: #d00000;
+  color: #f5f3dc;
+  padding: 15px;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: left;
+}
+
+.alat-table td {
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  font-size: 14px;
+}
+
+.alat-table tbody tr:hover {
+  background-color: rgba(208, 0, 0, 0.03);
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: #d00000;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #a80000;
+  transform: translateY(-2px);
+}
+
+.btn-save {
+  background: #c90000;
+  color: white;
+  width: 100%;
+}
+
+.btn-edit {
+  background: #cc0000;
+  color: #000;
+  padding: 6px 12px;
+  margin-right: 5px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.btn-delete {
+  background: #6e0b00;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* ===== BADGES ===== */
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cond-baik { background: #d4edda; color: #af0808; }
+.cond-rusak-ringan { background: #fff3cd; color: #856404; }
+.cond-rusak-berat { background: #f8d7da; color: #721c24; }
+
+/* Animation */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 9999;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 720px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+  padding: 18px;
+  animation: popIn 0.15s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    transform: translateY(8px);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+}
+
+.modal-close {
+  border: none;
+  background: #f1f1f1;
+  color: #111;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  filter: brightness(0.98);
+}
+
+/* grid 2 kolom untuk stok + kondisi */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 600px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+/* ===== FIX SELECT DROPDOWN TEXT ===== */
+.alat-form select {
+  color: #111;              /* teks terlihat */
+  background-color: #fff;   /* background putih */
+}
+
+/* placeholder option (yang value="") */
+.alat-form select option[value=""] {
+  color: #777;
+}
+
+/* option normal */
+.alat-form select option {
+  color: #111;
+  background: #fff;
+}
+
+/* saat dropdown dibuka & item dipilih */
+.alat-form select option:checked {
+  background-color: #d00000;
+  color: #fff;
+}
+/* ===== FIX TEXT INPUT DI MODAL/FORM ALAT ===== */
+.alat-form input,
+.alat-form select,
+.alat-form textarea {
+  color: #111 !important;            /* teks jadi hitam */
+  background-color: #fff !important; /* background putih */
+}
+
+/* placeholder biar jelas */
+.alat-form input::placeholder,
+.alat-form textarea::placeholder {
+  color: #888 !important;
+}
+
+/* kalau ada autofill dari chrome yang bikin aneh */
+.alat-form input:-webkit-autofill {
+  -webkit-text-fill-color: #111 !important;
+  box-shadow: 0 0 0px 1000px #fff inset !important;
+}
