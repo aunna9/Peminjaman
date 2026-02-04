@@ -298,3 +298,28 @@
   -webkit-text-fill-color: #111 !important;
   box-shadow: 0 0 0px 1000px #fff inset !important;
 }
+.alat-toolbar{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0 16px;
+  flex-wrap: wrap;
+}
+
+.alat-search{
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid #ffffff;
+  border-radius: 10px;
+  outline: none;
+}
+
+.alat-filter{
+  min-width: 200px;
+  padding: 10px 12px;
+  border: 1px solid #020202;
+  border-radius: 10px;
+  outline: none;
+  background: #000000;
+}

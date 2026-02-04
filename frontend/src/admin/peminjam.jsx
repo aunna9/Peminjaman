@@ -27,11 +27,20 @@ export default function PeminjamPage() {
     jumlah: 1,
     tgl_pinjam: "",
     tgl_kembali_rencana: "",
+    no_hp: "",
     keperluan: "",
   });
 
-  const token = localStorage.getItem("token");
-  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+const getAuthHeaders = () => {
+  let token = localStorage.getItem("token");
+  
+  // Jika token tersimpan sebagai '"abc"', kita hilangkan tanda kutipnya
+  if (token && token.startsWith('"') && token.endsWith('"')) {
+    token = token.slice(1, -1);
+  }
+  
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
   const kategoriMap = useMemo(() => {
     // map: id_kategori -> nama_kategori
@@ -49,7 +58,7 @@ export default function PeminjamPage() {
   const fetchKategori = async () => {
     try {
       setError("");
-      const res = await fetch(`${API}/kategori`, { headers: authHeaders });
+      const res = await fetch(`${API}/kategori`, { headers: getAuthHeaders()});
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) {
@@ -73,7 +82,7 @@ export default function PeminjamPage() {
       // tapi aman kalau dikirim, kalau tidak dipakai ya tidak masalah.
       if (kid) url.searchParams.set("id_kategori", kid);
 
-      const res = await fetch(url.toString(), { headers: authHeaders });
+      const res = await fetch(url.toString(), { headers: getAuthHeaders() });
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) {
@@ -89,24 +98,36 @@ export default function PeminjamPage() {
     }
   };
 
-  const fetchPinjamanSaya = async () => {
-    try {
-      setError("");
-      const res = await fetch(`${API}/peminjam/me`, { headers: authHeaders });
-      const json = await res.json().catch(() => ({}));
+const fetchPinjamanSaya = async () => {
+  try {
+    setError("");
 
-      if (!res.ok) {
-        setPinjamanSaya([]);
-        setError(json.message || "Gagal ambil pinjaman");
-        return;
-      }
+    const token = localStorage.getItem("token");
+    console.log("TOKEN DI PeminjamPage:", token); // ✅ cek beneran kebaca
 
-      setPinjamanSaya(normalizeList(json));
-    } catch {
+    const res = await fetch(`${API}/peminjam/me`, {
+      headers: getAuthHeaders(),
+    });
+
+    const text = await res.text();
+    console.log("ME STATUS:", res.status);
+    console.log("ME RAW:", text);
+
+    let json = {};
+    try { json = JSON.parse(text); } catch {}
+
+    if (!res.ok) {
       setPinjamanSaya([]);
-      setError("Gagal ambil pinjaman");
+      setError(json.message || text || "Gagal ambil pinjaman");
+      return;
     }
-  };
+
+    setPinjamanSaya(normalizeList(json));
+  } catch (e) {
+    setPinjamanSaya([]);
+    setError(e?.message || "Gagal ambil pinjaman");
+  }
+};
 
   /* ================= EFFECTS ================= */
 
@@ -128,6 +149,12 @@ useEffect(() => {
 
   /* ================= ACTIONS ================= */
 
+    const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    window.location.href = "/"; // atau "/login"
+  };
+
   const openModalPinjam = (alat) => {
     setError("");
     setAlatDipilih(alat);
@@ -135,6 +162,7 @@ useEffect(() => {
       jumlah: 1,
       tgl_pinjam: "",
       tgl_kembali_rencana: "",
+      no_hp: "",
       keperluan: "",
     });
     setShowModal(true);
@@ -158,43 +186,44 @@ const submitAjukan = async (e) => {
     jumlah: Number(formPinjam.jumlah),
     tanggal_pinjam: formPinjam.tgl_pinjam,
     tanggal_kembali: formPinjam.tgl_kembali_rencana,
-    //keperluan: formPinjam.keperluan,
+    keperluan: formPinjam.keperluan, // Aktifkan jika ingin disimpan
+    no_hp: formPinjam.no_hp,
   };
-
-  console.log("PAYLOAD:", payload);
 
   try {
     const res = await fetch(`${API}/peminjaman`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...authHeaders,
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(payload),
     });
 
+    const json = await res.json().catch(() => ({})); 
     console.log("STATUS:", res.status);
 
-    const text = await res.text();             // ✅ penting
-    console.log("RAW RESPONSE:", text);
-
-    let json = {};
-    try { json = JSON.parse(text); } catch {}
-
     if (!res.ok) {
-      setError(json.message || text || "Gagal mengajukan peminjaman");
+      setError(json.message || "Gagal mengajukan peminjaman");
       return;
     }
 
+    // Reset Form & Tutup Modal
     setShowModal(false);
     showToast("Pengajuan berhasil");
+
+    // Pindah Tab dan Refresh Data
     setTab("pinjaman");
-    fetchPinjamanSaya();
-    fetchAlat(kategoriId);
+    
+    // Beri sedikit delay agar transaksi database benar-benar selesai sebelum fetch ulang
+    setTimeout(() => {
+      fetchPinjamanSaya();
+      fetchAlat(kategoriId);
+    }, 300);
 
   } catch (err) {
     console.log("FETCH ERROR:", err);
-    setError(err?.message || "Gagal mengajukan peminjaman");
+    setError("Terjadi kesalahan koneksi");
   }
 };
 
@@ -206,7 +235,7 @@ const handleKembalikan = async (id) => {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...authHeaders,
+        ...getAuthHeaders(),
       },
       body: JSON.stringify({ status: "Dikembalikan" }),
     });
@@ -229,7 +258,19 @@ const handleKembalikan = async (id) => {
 
   return (
     <div className="peminjam-container">
-      <h1 className="peminjam-title">PEMINJAM</h1>
+      <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  }}
+>
+  <h1 className="peminjam-title">PEMINJAMAN LABORATORIUM SEKOLAH</h1>
+
+  <button className="btn-logout" onClick={handleLogout}>
+    Logout
+  </button>
+</div>
 
       {toast && <div className="toast-success">{toast}</div>}
       {error && <div className="alert-error">{error}</div>}
@@ -351,46 +392,92 @@ const handleKembalikan = async (id) => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>Ajukan Peminjaman</h3>
 
-            <form onSubmit={submitAjukan}>
-              <input value={alatDipilih?.nama_alat || ""} readOnly />
+<form onSubmit={submitAjukan} className="modal-form">
+  <div className="form-group">
+    <label>Nama Alat</label>
+    <input value={alatDipilih?.nama_alat || ""} readOnly />
+    <small className="hint">Alat dipinjam</small>
+  </div>
 
-              <input
-                type="number"
-                min="1"
-                max={alatDipilih?.stok || 999999}
-                value={formPinjam.jumlah}
-                onChange={(e) => setFormPinjam({ ...formPinjam, jumlah: e.target.value })}
-              />
+  <div className="form-group">
+    <label>Jumlah</label>
+    <input
+      type="number"
+      min="1"
+      max={alatDipilih?.stok || 999}
+      value={formPinjam.jumlah}
+      onChange={(e) => setFormPinjam({ ...formPinjam, jumlah: e.target.value })}
+      required
+    />
+    <small className="hint">Maks: {alatDipilih?.stok ?? "-"}</small>
+  </div>
 
-              <input
-                type="date"
-                value={formPinjam.tgl_pinjam}
-                onChange={(e) => setFormPinjam({ ...formPinjam, tgl_pinjam: e.target.value })}
-              />
+  <div className="form-row">
+    <div className="form-group">
+      <label>Tgl Pinjam</label>
+      <input
+        type="date"
+        value={formPinjam.tgl_pinjam}
+        onChange={(e) =>
+          setFormPinjam({ ...formPinjam, tgl_pinjam: e.target.value })
+        }
+        required
+      />
+      <small className="hint">Mulai</small>
+    </div>
 
-              <input
-                type="date"
-                value={formPinjam.tgl_kembali_rencana}
-                onChange={(e) =>
-                  setFormPinjam({ ...formPinjam, tgl_kembali_rencana: e.target.value })
-                }
-              />
+    <div className="form-group">
+      <label>Tgl Kembali</label>
+      <input
+        type="date"
+        value={formPinjam.tgl_kembali_rencana}
+        onChange={(e) =>
+          setFormPinjam({
+            ...formPinjam,
+            tgl_kembali_rencana: e.target.value,
+          })
+        }
+      />
+      <small className="hint">Opsional</small>
+    </div>
+  </div>
 
-              <textarea
-                placeholder="Keperluan"
-                value={formPinjam.keperluan}
-                onChange={(e) => setFormPinjam({ ...formPinjam, keperluan: e.target.value })}
-              />
+  <div className="form-group">
+    <label>No HP</label>
+    <input
+      type="tel"
+      placeholder="08xxxxxxxxxx"
+      value={formPinjam.no_hp}
+      onChange={(e) =>
+        setFormPinjam({ ...formPinjam, no_hp: e.target.value })
+      }
+      required
+    />
+    <small className="hint">Untuk konfirmasi</small>
+  </div>
 
-              <div className="modal-actions">
-                <button type="button" onClick={closeModal}>
-                  Batal
-                </button>
-                <button type="submit" className="btn-primary">
-                  Ajukan
-                </button>
-              </div>
-            </form>
+  <div className="form-group">
+    <label>Keperluan</label>
+    <textarea
+      placeholder="Contoh: Praktikum / TA / Penelitian"
+      value={formPinjam.keperluan}
+      onChange={(e) =>
+        setFormPinjam({ ...formPinjam, keperluan: e.target.value })
+      }
+      rows={2}
+    />
+    <small className="hint">Tujuan</small>
+  </div>
+
+  <div className="modal-actions">
+    <button type="button" onClick={closeModal} className="btn-secondary">
+      Batal
+    </button>
+    <button type="submit" className="btn-primary">
+      Ajukan
+    </button>
+  </div>
+</form>
           </div>
         </div>
       )}

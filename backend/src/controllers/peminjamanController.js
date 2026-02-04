@@ -2,166 +2,166 @@ const Peminjaman = require('../models/peminjaman')
 const db = require('../models/db');
 
 exports.index = async (req, res) => {
-  console.log("✅ INDEX PEMINJAMAN HIT");
   try {
     const [rows] = await db.query(`
       SELECT
         p.id_peminjaman,
-        p.id_user,
-        u.username AS peminjam,
+        u.username AS nama_peminjam,
+        p.no_hp,
         p.id_alat,
-        a.nama_alat AS alat,
+        a.nama_alat,
+        1 AS jumlah,
         p.tanggal_pinjam,
         p.tanggal_kembali,
         p.status,
         p.created_at
       FROM peminjaman p
-      LEFT JOIN users u ON u.id_user = p.id_user
-      LEFT JOIN alat a ON a.id_alat = p.id_alat
-      ORDER BY p.id_peminjaman DESC
+      JOIN users u ON u.id_user = p.id_user
+      JOIN alat a ON a.id_alat = p.id_alat
+      ORDER BY p.created_at DESC
+      LIMIT 25
     `);
 
-    return res.json({ data: rows });
+    res.json(rows);
   } catch (err) {
-    console.error("INDEX PEMINJAMAN ERROR:", err);
-    return res.status(500).json({ message: "Server error", error: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Gagal ambil data peminjaman" });
   }
 };
 
 exports.create = async (req, res) => {
   try {
-    const userId = req.user?.id; // ✅ middleware kamu: req.user.id
-    const { id_alat, tanggal_pinjam, tanggal_kembali, jumlah } = req.body;
+    console.log("--> Request Masuk");
+    const userId = req.user?.id; // PASTIKAN PAKAI .id SESUAI TOKEN
+    const { id_alat, tanggal_pinjam, tanggal_kembali, no_hp } = req.body;
 
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
-    if (!id_alat || !tanggal_pinjam) {
-      return res.status(400).json({ message: "Data belum lengkap" });
-    }
+    console.log("--> Data User ID:", userId);
+    if (!userId) return res.status(401).json({ message: "Unauthorized (No User ID)" });
 
-    // cek stok alat
-    const [alatRows] = await db.query(
-      "SELECT stok FROM alat WHERE id_alat = ?",
-      [id_alat]
-    );
-    if (alatRows.length === 0) {
-      return res.status(404).json({ message: "Alat tidak ditemukan" });
-    }
-
-    const qty = Number(jumlah || 1);
-    if (qty < 1) return res.status(400).json({ message: "Jumlah minimal 1" });
-    if (Number(alatRows[0].stok) < qty) {
-      return res.status(400).json({ message: "Stok alat habis / kurang" });
-    }
-
-    // insert peminjaman (sesuai kolom DB kamu)
+    console.log("--> Menjalankan Query...");
     const [result] = await db.query(
-      `INSERT INTO peminjaman (id_user, id_alat, tanggal_pinjam, tanggal_kembali, status)
-       VALUES (?, ?, ?, ?, 'dipinjam')`,
-      [userId, id_alat, tanggal_pinjam, tanggal_kembali || null]
+      `INSERT INTO peminjaman (id_user, id_alat, no_hp, tanggal_pinjam, tanggal_kembali, status)
+       VALUES (?, ?, ?, ?, ?, 'menunggu')`,
+      [userId, id_alat, no_hp, tanggal_pinjam, tanggal_kembali || null]
     );
 
-    // kurangi stok
-    await db.query(
-      "UPDATE alat SET stok = stok - ? WHERE id_alat = ?",
-      [qty, id_alat]
-    );
-
+    console.log("--> Berhasil Simpan ID:", result.insertId);
     return res.status(201).json({
       message: "Peminjaman berhasil diajukan",
       id_peminjaman: result.insertId,
     });
   } catch (err) {
-    console.error("CREATE PEMINJAMAN ERROR:", err);
+    console.error("❌ ERROR SERVER:", err.message);
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-exports.show = (req, res) => {
-    const id = req.params.id;
-    Peminjaman.getById(id, (err, results) => {
-        if (err) return res.status(500).json(err);
-        res.json(results[0]);
-    })
-}
+exports.show = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [rows] = await db.query(
+      `SELECT p.*, u.username AS nama_peminjam, a.nama_alat
+       FROM peminjaman p
+       JOIN users u ON u.id_user=p.id_user
+       JOIN alat a ON a.id_alat=p.id_alat
+       WHERE p.id_peminjaman=? LIMIT 1`,
+      [id]
+    );
 
-exports.store = (req, res) => {
-  const data = req.body;
-
-  // ambil stok, bukan jumlah
-  const cekStok = "SELECT stok FROM alat WHERE id_alat = ?";
-  db.query(cekStok, [data.alat_id], (err, result) => {
-    if (err) return res.status(500).json(err);
-
-    if (result.length === 0) {
-      return res.status(404).json({ message: "Alat tidak ditemukan" });
-    }
-
-    if (result[0].stok < 1) {
-      return res.status(400).json({ message: "Stok alat habis" });
-    }
-
-    const insertPeminjaman = "INSERT INTO peminjaman SET ?";
-    const updateStok = "UPDATE alat SET stok = stok - 1 WHERE id_alat = ?";
-
-    db.query(insertPeminjaman, data, (err) => {
-      if (err) return res.status(500).json(err);
-
-      db.query(updateStok, [data.alat_id], (err) => {
-        if (err) return res.status(500).json(err);
-
-        res.json({ message: "Peminjaman berhasil" });
-      });
-    });
-  });
+    if (!rows.length) return res.status(404).json({ message: "Data tidak ditemukan" });
+    res.json(rows[0]);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
 };
 
-exports.updateStatus = (req, res) => {
-  const { status } = req.body;
-  const id = req.params.id;
+exports.update = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let { status } = req.body;
 
-  // normalisasi status biar gak case sensitive
-  const st = (status || "").toLowerCase();
+    if (!status) return res.status(400).json({ message: "Status wajib diisi" });
 
-  // update status dulu
-  const updateStatusSql = "UPDATE peminjaman SET status = ? WHERE id_peminjaman = ?";
-  db.query(updateStatusSql, [status, id], (err, result) => {
-    if (err) return res.status(500).json(err);
+    status = String(status).toLowerCase();
+    const allowed = ["menunggu", "dipinjam", "dikembalikan", "ditolak", "terlambat"];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ message: "Status tidak valid" });
+    }
+
+    // ambil data lama
+    const [oldRows] = await db.query(
+      "SELECT id_alat, status FROM peminjaman WHERE id_peminjaman=?",
+      [id]
+    );
+
+    if (oldRows.length === 0) {
+      return res.status(404).json({ message: "Data tidak ditemukan" });
+    }
+
+    const id_alat = oldRows[0].id_alat;
+    const oldStatus = String(oldRows[0].status || "").toLowerCase();
+
+    // ✅ kalau dari MENUNGGU menjadi DIPINJAM → cek stok lalu kurangi 1
+    if (oldStatus === "menunggu" && status === "dipinjam") {
+      const [alatRows] = await db.query("SELECT stok FROM alat WHERE id_alat=?", [id_alat]);
+      if (alatRows.length === 0) return res.status(404).json({ message: "Alat tidak ditemukan" });
+      if (Number(alatRows[0].stok) < 1) return res.status(400).json({ message: "Stok alat habis" });
+
+      await db.query("UPDATE alat SET stok = stok - 1 WHERE id_alat=?", [id_alat]);
+    }
+
+    const [result] = await db.query(
+      "UPDATE peminjaman SET status=? WHERE id_peminjaman=?",
+      [status, id]
+    );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Data peminjaman tidak ditemukan" });
+      return res.status(404).json({ message: "Data tidak ditemukan" });
     }
 
-    // kalau bukan pengembalian, selesai
-    if (st !== "dikembalikan") {
-      return res.json({ message: "Status peminjaman berhasil diupdate" });
-    }
-
-    // ambil alat_id dari peminjaman (lebih aman)
-    const getAlat = "SELECT alat_id FROM peminjaman WHERE id_peminjaman = ?";
-    db.query(getAlat, [id], (err, rows) => {
-      if (err) return res.status(500).json(err);
-      if (rows.length === 0) {
-        return res.status(404).json({ message: "Data peminjaman tidak ditemukan" });
-      }
-
-      const alatId = rows[0].alat_id;
-
-      // balikin stok (pakai stok dan id_alat biar konsisten sama store)
-      const tambahStok = "UPDATE alat SET stok = stok + 1 WHERE id_alat = ?";
-      db.query(tambahStok, [alatId], (err) => {
-        if (err) return res.status(500).json(err);
-
-        res.json({ message: "Alat berhasil dikembalikan (stok bertambah)" });
-      });
-    });
-  });
+    return res.json({ message: "Status berhasil diupdate" });
+  } catch (err) {
+    console.error("UPDATE PEMINJAMAN ERROR:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
 };
 
+// DELETE /api/peminjaman/:id
+exports.remove = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-exports.destroy = (req, res) => {
-    const id = req.params.id;
-    Peminjaman.delete(id, (err) => {
-        if (err) return res.status(500).json(err);
-        res.json({ message: "Data peminjaman dihapus" });
-    })
-}
+    // ambil dulu data peminjaman
+    const [rows] = await db.query(
+      "SELECT id_alat, status FROM peminjaman WHERE id_peminjaman=?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Data tidak ditemukan" });
+    }
+
+    const id_alat = rows[0].id_alat;
+    const st = String(rows[0].status || "").toLowerCase();
+
+    // hapus
+    const [result] = await db.query(
+      "DELETE FROM peminjaman WHERE id_peminjaman=?",
+      [id]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Data tidak ditemukan" });
+    }
+
+    // ✅ kalau yang dihapus statusnya dipinjam, balikin stok +1
+    if (st === "dipinjam") {
+      await db.query("UPDATE alat SET stok = stok + 1 WHERE id_alat=?", [id_alat]);
+    }
+
+    return res.json({ message: "Data berhasil dihapus" });
+  } catch (err) {
+    console.error("REMOVE PEMINJAMAN ERROR:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
+  }
+};

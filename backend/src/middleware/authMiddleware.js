@@ -8,7 +8,7 @@ const authJWT = (req, res, next) => {
 
   // format wajib: "Bearer <token>"
   if (!authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorized (no bearer)" });
   }
 
   const token = authHeader.slice(7);

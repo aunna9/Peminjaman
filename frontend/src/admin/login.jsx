@@ -45,7 +45,7 @@ const handleLogin = async (e) => {
       return;
     }
 
-    localStorage.setItem("token", data.token || "");
+    localStorage.setItem("token", data.token);
     localStorage.setItem("role", (data.role || "").toLowerCase());
 
 

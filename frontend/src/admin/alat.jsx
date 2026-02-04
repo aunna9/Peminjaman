@@ -16,6 +16,10 @@ export default function Alat() {
   const [stok, setStok] = useState("");
   const [kondisi, setKondisi] = useState("Baik");
   const [editingId, setEditingId] = useState(null);
+    // ===== search & filter =====
+  const [q, setQ] = useState("");
+  const [filterKategori, setFilterKategori] = useState(""); // id_kategori (string)
+
 
   /* ================= FETCH ================= */
 
@@ -116,12 +120,33 @@ export default function Alat() {
     }
   }
 
+    // map id_kategori -> nama_kategori biar tampil konsisten
+  const kategoriMap = kategoriList.reduce((acc, k) => {
+    acc[String(k.id_kategori)] = k.nama_kategori;
+    return acc;
+  }, {});
+
+  const filteredAlat = alatList.filter((item) => {
+    const nama = String(item.nama_alat ?? "").toLowerCase();
+    const namaKat =
+      String(item.nama_kategori ?? kategoriMap[String(item.id_kategori)] ?? "").toLowerCase();
+
+    const matchSearch =
+      q.trim() === "" ||
+      nama.includes(q.trim().toLowerCase()) ||
+      namaKat.includes(q.trim().toLowerCase());
+
+    const matchKategori =
+      filterKategori === "" || String(item.id_kategori) === String(filterKategori);
+
+    return matchSearch && matchKategori;
+  });
+
   /* ================= RENDER ================= */
   return (
     <div className="alat-container">
       <div className="alat-header">
-        <h1>Data Alat</h1>
-        <p>Kelola data alat laboratorium beserta kategori, stok, dan kondisinya.</p>
+        <h1>Alat Laboratorium</h1>
       </div>
 
       {!showForm && (
@@ -133,6 +158,44 @@ export default function Alat() {
           + Tambah Alat
         </button>
       )}
+
+            {/* ===== Search & Filter Bar ===== */}
+      {!showForm && (
+        <div className="alat-toolbar">
+          <input
+            className="alat-search"
+            type="text"
+            placeholder="Cari nama alat / kategori..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+
+          <select
+            className="alat-filter"
+            value={filterKategori}
+            onChange={(e) => setFilterKategori(e.target.value)}
+          >
+            <option value="">Semua Kategori</option>
+            {kategoriList.map((kat) => (
+              <option key={kat.id_kategori} value={kat.id_kategori}>
+                {kat.nama_kategori}
+              </option>
+            ))}
+          </select>
+
+          <button
+            className="btn-action btn-secondary"
+            type="button"
+            onClick={() => {
+              setQ("");
+              setFilterKategori("");
+            }}
+          >
+            Reset
+          </button>
+        </div>
+      )}
+
 
 {showForm && (
   <div
@@ -232,31 +295,34 @@ export default function Alat() {
                 <th>Aksi</th>
               </tr>
             </thead>
-            <tbody>
-              {alatList.length > 0 ? (
-                alatList.map((item, index) => (
-                  <tr key={item.id_alat}>
-                    <td>{index + 1}</td>
-                    <td>{item.nama_alat}</td>
-                    <td>{item.nama_kategori || item.id_kategori}</td>
-                    <td>{item.stok}</td>
-                    <td>
-                        <span className={`badge ${item.kondisi.toLowerCase().replace(" ", "-")}`}>
-                            {item.kondisi}
-                        </span>
-                    </td>
-                    <td>
-                      <button className="btn-edit" onClick={() => handleEdit(item)}>Edit</button>
-                      <button className="btn-delete" onClick={() => handleDelete(item.id_alat)}>Hapus</button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" style={{ textAlign: "center" }}>Data kosong</td>
-                </tr>
-              )}
-            </tbody>
+<tbody>
+  {filteredAlat.length > 0 ? (
+    filteredAlat.map((item, index) => (
+      <tr key={item.id_alat}>
+        <td>{index + 1}</td>
+        <td>{item.nama_alat}</td>
+        <td>{item.nama_kategori || kategoriMap[String(item.id_kategori)] || item.id_kategori}</td>
+        <td>{item.stok}</td>
+        <td>
+          <span className={`badge ${String(item.kondisi).toLowerCase().replace(/\s+/g, "-")}`}>
+            {item.kondisi}
+          </span>
+        </td>
+        <td>
+          <button className="btn-edit" onClick={() => handleEdit(item)}>Edit</button>
+          <button className="btn-delete" onClick={() => handleDelete(item.id_alat)}>Hapus</button>
+        </td>
+      </tr>
+    ))
+  ) : (
+    <tr>
+      <td colSpan="6" style={{ textAlign: "center" }}>
+        Data tidak ditemukan
+      </td>
+    </tr>
+  )}
+</tbody>
+
           </table>
         </div>
       )}

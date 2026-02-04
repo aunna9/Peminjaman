@@ -105,10 +105,10 @@
 
 /* ===== SECTION BAWAH ===== */
 .section{
-  display:grid;
-  grid-template-columns: 1.3fr 0.7fr;
-  gap:25px;
+  display: block;
+  margin-top: 20px;
 }
+
 
 @media (max-width: 900px){
   .section{
@@ -196,4 +196,61 @@ tbody tr:hover{
 .logSub{
   font-size:12px;
   color:#666;
+}
+.dashboard-grid{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px; /* penting: minmax(0,1fr) */
+  gap: 20px;
+  align-items: start;
+}
+
+/* Log box */
+.dashboard-log {
+  background: #fff1d6;
+  border-radius: 14px;
+  padding: 16px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-log {
+    max-height: none;
+  }
+}
+.admin-dashboard{
+  overflow-x: hidden;
+}
+
+.dashboard-main{
+  min-width: 0;
+}
+.dashboard-log{
+  position: sticky;
+  top: 20px;
+}
+.admin-dashboard{ overflow-x: hidden; }
+
+.tableWrap{
+  width: 100%;
+  overflow-x: auto;
+}
+.tableWrap{
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table th, .table td{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tglCol{
+  max-width: 170px;
 }
