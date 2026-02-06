@@ -45,12 +45,12 @@ const handleLogin = async (e) => {
       return;
     }
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("role", (data.role || "").toLowerCase());
+sessionStorage.setItem("token", data.token);
+sessionStorage.setItem("role", (data.role || "").toLowerCase());
 
+console.log("ROLE TERSIMPAN:", sessionStorage.getItem("role"));
+console.log("TOKEN ADA:", !!sessionStorage.getItem("token"));
 
-    console.log("ROLE TERSIMPAN:", localStorage.getItem("role"));
-    console.log("TOKEN ADA:", !!localStorage.getItem("token"));
 
     // redirect petugas harus ke /admin/peminjaman (sesuai yang kamu mau)
     const role = (data.role || "").toLowerCase();

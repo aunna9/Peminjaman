@@ -153,17 +153,6 @@ const deletePeminjaman = async (id) => {
     return "badge";
   };
 
-  const openDetail = (row) => {
-    alert(
-      `Detail Peminjaman\n\n` +
-        `ID: ${row.id_peminjaman ?? row.id ?? "-"}\n` +
-        `Peminjam: ${row.peminjam ?? row.username ?? "-"}\n` +
-        `No HP: ${row.no_hp ?? "-"}\n` +
-        `Alat: ${row.alat ?? row.nama_alat ?? "-"}\n` +
-        `Status: ${row.status ?? "-"}`
-    );
-  };
-
   return (
     <div className="peminjaman-container">
       <div className="peminjaman-header">
@@ -231,7 +220,7 @@ const deletePeminjaman = async (id) => {
                   <tr key={id ?? idx}>
                     <td>{idx + 1}</td>
                     <td>{id ?? "-"}</td>
-                    <td>{r.peminjam ?? r.username ?? "-"}</td>
+                    <td>{r.nama_peminjam ?? r.username ?? r.peminjam ?? "-"}</td>
                     <td>{r.no_hp ?? "-"}</td>
                     <td>{r.alat ?? r.nama_alat ?? "-"}</td>
                     <td>{r.tglPinjam ?? r.tanggal_pinjam ?? "-"}</td>
@@ -240,12 +229,6 @@ const deletePeminjaman = async (id) => {
                       <span className={badgeClass(r.status)}>{r.status}</span>
                     </td>
                     <td style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                      <button
-                        className="btn-action btn-detail"
-                        onClick={() => openDetail(r)}
-                      >
-                        Detail
-                      </button>
 
                       <button
                         className="btn-action btn-approve"

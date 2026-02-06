@@ -161,3 +161,26 @@ tbody tr:hover {
   border: 1px solid #333;
   color: #333;
 }
+/* Warna Oranye untuk proses verifikasi pengembalian */
+.badge.orange {
+  background-color: #ff9800;
+  color: white;
+}
+
+/* Warna Biru untuk alat yang sedang dibawa siswa */
+.badge.blue {
+  background-color: #2196f3;
+  color: white;
+}
+
+/* Warna Hijau untuk alat yang sudah sukses dikembalikan */
+.badge.green {
+  background-color: #4caf50;
+  color: white;
+}
+
+/* Tambahkan efek hover pada tombol konfirmasi agar lebih interaktif */
+.btn-action[style*="background-color: #ff9800"]:hover {
+  background-color: #e68a00 !important;
+  cursor: pointer;
+}

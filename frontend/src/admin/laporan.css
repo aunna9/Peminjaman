@@ -1,0 +1,41 @@
+.laporan-page { padding: 24px; }
+.laporan-title { font-size: 42px; margin: 0; color: #b10000; letter-spacing: 1px; }
+.laporan-sub { margin-top: 6px; color: #333; }
+
+.laporan-toolbar {
+  margin: 18px 0 14px;
+  display: flex;
+  gap: 14px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.laporan-filter { display: flex; flex-direction: column; gap: 6px; }
+.laporan-filter label { font-size: 12px; color: #444; }
+.laporan-filter input { padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; }
+
+.btn {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #b10000;
+  background: #b10000;
+  color: white;
+  cursor: pointer;
+}
+.btn.outline {
+  background: transparent;
+  color: #b10000;
+}
+
+.laporan-error { background: #ffe2e2; border: 1px solid #ffb3b3; padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
+.laporan-loading { padding: 14px; }
+
+.laporan-cards { display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: 12px; margin: 14px 0; }
+.card { background: #fdecc8; border-radius: 14px; padding: 14px; border: 1px solid #f2d9a7; }
+.card-label { font-size: 12px; color: #555; }
+.card-num { font-size: 30px; font-weight: 800; color: #b10000; margin-top: 6px; }
+
+.laporan-tablewrap { background: #fdecc8; border: 1px solid #f2d9a7; border-radius: 14px; padding: 14px; overflow: auto; }
+.laporan-table { width: 100%; border-collapse: collapse; }
+.laporan-table th { text-align: left; background: #b10000; color: white; padding: 10px; }
+.laporan-table td { padding: 10px; border-bottom: 1px solid #f2d9a7; }

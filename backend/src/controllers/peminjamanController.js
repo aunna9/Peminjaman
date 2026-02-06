@@ -31,28 +31,24 @@ exports.index = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    console.log("--> Request Masuk");
-    const userId = req.user?.id; // PASTIKAN PAKAI .id SESUAI TOKEN
+    const userId = req.user?.id || req.user?.id_user;
+    // JANGAN ambil keperluan dari req.body jika kolomnya tidak ada di DB
     const { id_alat, tanggal_pinjam, tanggal_kembali, no_hp } = req.body;
 
-    console.log("--> Data User ID:", userId);
-    if (!userId) return res.status(401).json({ message: "Unauthorized (No User ID)" });
+    if (!userId) return res.status(401).json({ message: "Sesi habis" });
 
-    console.log("--> Menjalankan Query...");
+    // Query INSERT tanpa kolom keperluan
     const [result] = await db.query(
       `INSERT INTO peminjaman (id_user, id_alat, no_hp, tanggal_pinjam, tanggal_kembali, status)
        VALUES (?, ?, ?, ?, ?, 'menunggu')`,
       [userId, id_alat, no_hp, tanggal_pinjam, tanggal_kembali || null]
     );
 
-    console.log("--> Berhasil Simpan ID:", result.insertId);
-    return res.status(201).json({
-      message: "Peminjaman berhasil diajukan",
-      id_peminjaman: result.insertId,
-    });
+    return res.status(201).json({ message: "Berhasil!", id: result.insertId });
   } catch (err) {
-    console.error("❌ ERROR SERVER:", err.message);
-    return res.status(500).json({ message: "Server error", error: err.message });
+    console.error("❌ ERROR:", err.message);
+    // WAJIB ADA RESPONSE AGAR TIDAK PENDING
+    return res.status(500).json({ message: "Gagal simpan", error: err.message });
   }
 };
 
@@ -83,12 +79,13 @@ exports.update = async (req, res) => {
     if (!status) return res.status(400).json({ message: "Status wajib diisi" });
 
     status = String(status).toLowerCase();
-    const allowed = ["menunggu", "dipinjam", "dikembalikan", "ditolak", "terlambat"];
+    // Tambahkan 'menunggu pengembalian' ke list allowed
+    const allowed = ["menunggu", "dipinjam", "dikembalikan", "ditolak", "terlambat", "menunggu pengembalian"];
     if (!allowed.includes(status)) {
       return res.status(400).json({ message: "Status tidak valid" });
     }
 
-    // ambil data lama
+    // 1. Ambil data lama untuk pengecekan logika stok
     const [oldRows] = await db.query(
       "SELECT id_alat, status FROM peminjaman WHERE id_peminjaman=?",
       [id]
@@ -101,7 +98,7 @@ exports.update = async (req, res) => {
     const id_alat = oldRows[0].id_alat;
     const oldStatus = String(oldRows[0].status || "").toLowerCase();
 
-    // ✅ kalau dari MENUNGGU menjadi DIPINJAM → cek stok lalu kurangi 1
+    // 2. LOGIKA STOK BERKURANG: Dari MENUNGGU (booking) ke DIPINJAM (alat dibawa)
     if (oldStatus === "menunggu" && status === "dipinjam") {
       const [alatRows] = await db.query("SELECT stok FROM alat WHERE id_alat=?", [id_alat]);
       if (alatRows.length === 0) return res.status(404).json({ message: "Alat tidak ditemukan" });
@@ -110,6 +107,13 @@ exports.update = async (req, res) => {
       await db.query("UPDATE alat SET stok = stok - 1 WHERE id_alat=?", [id_alat]);
     }
 
+    // 3. LOGIKA STOK BERTAMBAH: Konfirmasi Admin (dari menunggu kembali ke lunas/kembali)
+    // Ini memastikan user tidak bisa menambah stok sendiri tanpa lewat status 'menunggu pengembalian'
+    if (oldStatus === "menunggu pengembalian" && status === "dikembalikan") {
+      await db.query("UPDATE alat SET stok = stok + 1 WHERE id_alat=?", [id_alat]);
+    }
+
+    // 4. Eksekusi Update Status
     const [result] = await db.query(
       "UPDATE peminjaman SET status=? WHERE id_peminjaman=?",
       [status, id]
@@ -119,7 +123,7 @@ exports.update = async (req, res) => {
       return res.status(404).json({ message: "Data tidak ditemukan" });
     }
 
-    return res.json({ message: "Status berhasil diupdate" });
+    return res.json({ message: `Status berhasil diubah menjadi ${status}` });
   } catch (err) {
     console.error("UPDATE PEMINJAMAN ERROR:", err);
     return res.status(500).json({ message: "Server error", error: err.message });

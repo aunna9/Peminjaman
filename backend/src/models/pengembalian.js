@@ -1,5 +1,4 @@
-// models/peminjaman.js
-const db = require("../config/db");
+const db = require("../routes/userRoutes");
 
 const Peminjaman = {
   // Ambil semua data peminjaman

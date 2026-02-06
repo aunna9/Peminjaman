@@ -2,9 +2,8 @@ const db = require("../models/db");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = "ayosekolah"; // nanti kalau mau lebih aman, pindah ke .env
+const JWT_SECRET = "ayosekolah"; 
 
-// ===== REGISTER =====
 exports.register = async (req, res) => {
   try {
     const { username, password, role } = req.body;

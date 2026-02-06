@@ -32,13 +32,13 @@ export default function PeminjamPage() {
   });
 
 const getAuthHeaders = () => {
-  let token = localStorage.getItem("token");
-  
-  // Jika token tersimpan sebagai '"abc"', kita hilangkan tanda kutipnya
+  let token = sessionStorage.getItem("token"); // ✅ pakai let
+
+  // kalau token tersimpan '"abc"', hilangkan kutipnya
   if (token && token.startsWith('"') && token.endsWith('"')) {
     token = token.slice(1, -1);
   }
-  
+
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -102,8 +102,9 @@ const fetchPinjamanSaya = async () => {
   try {
     setError("");
 
-    const token = localStorage.getItem("token");
-    console.log("TOKEN DI PeminjamPage:", token); // ✅ cek beneran kebaca
+const token = sessionStorage.getItem("token");
+console.log("TOKEN DI PeminjamPage:", token);
+console.log("ROLE DI PeminjamPage:", sessionStorage.getItem("role"));
 
     const res = await fetch(`${API}/peminjam/me`, {
       headers: getAuthHeaders(),
@@ -147,13 +148,16 @@ useEffect(() => {
   }
 }, [tab]);
 
-  /* ================= ACTIONS ================= */
+const handleLogout = () => {
+  sessionStorage.removeItem("token");
+  sessionStorage.removeItem("role");
 
-    const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    window.location.href = "/"; // atau "/login"
-  };
+  // bersihin sisa lama biar gak ganggu
+  localStorage.removeItem("token");
+  localStorage.removeItem("role");
+
+  window.location.href = "/login";
+};
 
   const openModalPinjam = (alat) => {
     setError("");
@@ -186,7 +190,7 @@ const submitAjukan = async (e) => {
     jumlah: Number(formPinjam.jumlah),
     tanggal_pinjam: formPinjam.tgl_pinjam,
     tanggal_kembali: formPinjam.tgl_kembali_rencana,
-    keperluan: formPinjam.keperluan, // Aktifkan jika ingin disimpan
+   // keperluan: formPinjam.keperluan, // Aktifkan jika ingin disimpan
     no_hp: formPinjam.no_hp,
   };
 

@@ -15,14 +15,22 @@ const onlyAdminOrPetugas = (req, res, next) => {
 };
 
 const onlyPeminjam = (req, res, next) => {
-  console.log("USER DARI TOKEN:", req.user); // Tambahkan ini untuk debug
+  console.log("USER DARI TOKEN:", req.user); 
   const role = String(req.user?.role || "").trim().toLowerCase();
   
   if (!role) {
-     console.log("Gagal karena role kosong");
+     console.log("❌ Gagal karena role kosong");
      return res.status(401).json({ message: "Unauthorized" });
   }
-  // ... rest of code
+
+  // Tambahkan pengecekan role 'peminjam'
+  if (role !== "peminjam") {
+    console.log("❌ Gagal karena role bukan peminjam:", role);
+    return res.status(403).json({ message: "Forbidden: Hanya untuk peminjam" });
+  }
+
+  // WAJIB: Panggil next() agar lanjut ke controller.create
+  next(); 
 };
 
 // ===== ROUTES =====

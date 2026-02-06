@@ -11,6 +11,7 @@ import User from "./admin/user";
 import Alat from "./admin/alat";
 import Peminjaman from "./admin/peminjaman";
 import Pengembalian from "./admin/pengembalian";
+import Laporan from "./admin/laporan";
 
 import Peminjam from "./admin/peminjam"; // ⬅️ halaman peminjam
 
@@ -69,6 +70,17 @@ function App() {
               />
             }
           />
+
+          <Route
+  path="laporan"
+  element={
+    <ProtectedRoute
+      element={<Laporan />}
+      allowedRoles={["petugas"]}
+    />
+  }
+/>
+
 
           {/* admin + petugas */}
           <Route path="peminjaman" element={<Peminjaman />} />

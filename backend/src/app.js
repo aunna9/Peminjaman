@@ -23,9 +23,8 @@ app.use("/api", userRoutes);
 app.use("/api/peminjaman", peminjamanRoutes)
 app.use("/api/alat", alatRoutes)
 app.use("/api/kategori", kategoriRoutes)
-app.use("/api", pengembalianRoutes)
 app.use("/api/peminjam", peminjamRoutes)
-console.log("✅ APP.JS INI YANG JALAN");
+app.use("/api/pengembalian", pengembalianRoutes)
 
 app.listen(port, () => {
   console.log(`Server berjalan di port ${port}`);

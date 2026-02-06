@@ -12,13 +12,16 @@ import {
 import "./sidebar.css";
 
 const Sidebar = () => {
-  const role = (localStorage.getItem("role") || "").toLowerCase();
+const role = (sessionStorage.getItem("role") || "").toLowerCase();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/", { replace: true }); // ✅ aman
-  };
+const handleLogout = () => {
+  sessionStorage.removeItem("token");
+  sessionStorage.removeItem("role");
+  localStorage.removeItem("token"); // bersihin sisa lama
+  localStorage.removeItem("role");
+  navigate("/login", { replace: true });
+};
 
   return (
     <aside className="sidebar">
