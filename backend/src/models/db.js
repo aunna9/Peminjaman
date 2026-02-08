@@ -1,4 +1,3 @@
-// src/models/db.js
 const mysql = require("mysql2/promise");
 
 const pool = mysql.createPool({
@@ -18,4 +17,3 @@ pool
   .catch((err) => console.error("Error waktu konek ke database", err));
 
 module.exports = pool;
-

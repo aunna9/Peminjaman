@@ -27,7 +27,6 @@ exports.index = async (req, res) => {
   }
 };
 
-// GET /api/alat/:id
 exports.show = async (req, res) => {
   try {
     const [rows] = await db.query(
@@ -46,7 +45,6 @@ exports.show = async (req, res) => {
   }
 };
 
-// POST /api/alat
 exports.store = async (req, res) => {
   try {
     const { nama_alat, id_kategori, stok, kondisi } = req.body;
@@ -78,7 +76,6 @@ exports.store = async (req, res) => {
   }
 };
 
-// PUT /api/alat/:id
 exports.update = async (req, res) => {
   try {
     const id = req.params.id;
@@ -94,7 +91,6 @@ exports.update = async (req, res) => {
       return res.status(400).json({ message: "Tidak ada data untuk diupdate" });
     }
 
-    // ambil data lama biar bisa partial update
     const [oldRows] = await db.query(
       "SELECT * FROM alat WHERE id_alat = ?",
       [id]
@@ -132,7 +128,6 @@ exports.update = async (req, res) => {
   }
 };
 
-// DELETE /api/alat/:id
 exports.destroy = async (req, res) => {
   try {
     const id = req.params.id;

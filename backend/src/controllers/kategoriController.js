@@ -1,6 +1,5 @@
 const db = require("../models/db");
 
-// GET /api/kategori
 exports.index = async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM kategori ORDER BY id_kategori DESC");
@@ -11,7 +10,6 @@ exports.index = async (req, res) => {
   }
 };
 
-// GET /api/kategori/:id
 exports.show = async (req, res) => {
   try {
     const [rows] = await db.query(
@@ -28,7 +26,6 @@ exports.show = async (req, res) => {
   }
 };
 
-// POST /api/kategori
 exports.store = async (req, res) => {
   try {
     const { nama_kategori } = req.body;
@@ -52,7 +49,6 @@ exports.store = async (req, res) => {
   }
 };
 
-// PUT /api/kategori/:id
 exports.update = async (req, res) => {
   try {
     const id = req.params.id;
@@ -82,7 +78,6 @@ exports.update = async (req, res) => {
   }
 };
 
-// DELETE /api/kategori/:id
 exports.destroy = async (req, res) => {
   try {
     const id = req.params.id;

@@ -5,7 +5,7 @@ export default function Peminjaman() {
   const API_URL = "http://localhost:8080/api/peminjaman";
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
   if (!token) return {};
   return { Authorization: `Bearer ${token}` };
 };
@@ -25,7 +25,7 @@ const fetchPeminjaman = async () => {
   setError("");
 
   try {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (!token) throw new Error("Token tidak ada. Silakan login ulang.");
 
     console.log("TOKEN (admin peminjaman):", token.slice(0, 20) + "...");
@@ -90,7 +90,7 @@ const deletePeminjaman = async (id) => {
   if (!ok) return;
 
   try {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (!token) throw new Error("Token tidak ada. Silakan login ulang.");
 
     const res = await fetch(`${API_URL}/${id}`, {

@@ -36,7 +36,7 @@ export default function Dashboard() {
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const API = `${BASE_URL}/api`;
 
-const token = localStorage.getItem("token");
+const token = sessionStorage.getItem("token");
 
 const res = await fetch(`${API}/peminjaman`, {
   headers: { Authorization: `Bearer ${token}` },
