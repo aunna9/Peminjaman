@@ -1,4 +1,4 @@
-const koneksi = require("../models/db");
+const db = require("../models/db");
 
 const DENDA_PER_HARI = 2000; // silakan ubah
 
@@ -31,40 +31,41 @@ const [rows] = await db.query(`
   ORDER BY p.created_at DESC
 `);
 
+const mapped = rows.map((r) => {
+  const statusDb = String(r.status || "").toLowerCase();
 
-    const today = new Date();
+  const today = new Date();
 
-    const mapped = rows.map((r) => {
-      const status = String(r.status || "").toLowerCase();
+  // ✅ hitung telat hanya kalau status masih dipinjam/terlambat (bukan menunggu pengembalian)
+  let terlambatHari = 0;
+  if (r.tglKembali && (statusDb === "dipinjam" || statusDb === "terlambat")) {
+    terlambatHari = Math.max(0, diffDays(r.tglKembali, today));
+  }
 
-      // hitung telat hanya kalau belum dikembalikan
-      let terlambatHari = 0;
-      if (r.tglKembali && status !== "dikembalikan") {
-        terlambatHari = Math.max(0, diffDays(r.tglKembali, today));
-      }
+  const denda = terlambatHari * DENDA_PER_HARI;
 
-      const denda = terlambatHari * DENDA_PER_HARI;
+  // ✅ status tampilan (badge) tapi JANGAN timpa status DB
+  let statusTampil = r.status || "-";
+  if ((statusDb === "dipinjam" || statusDb === "terlambat") && terlambatHari > 0) {
+    statusTampil = "terlambat";
+  }
 
-      // buat status tampilan telat (opsional)
-      let statusTampil = r.status || "dipinjam";
-      if (status !== "dikembalikan" && terlambatHari > 0) statusTampil = "terlambat";
+  return {
+    ...r,
+    status: r.status,        // ✅ status asli dari DB tetap
+    statusTampil,            // ✅ tambahan untuk UI
+    terlambatHari,
+    denda,
+  };
+});
 
-      return {
-        ...r,
-        status: statusTampil,
-        terlambatHari,
-        denda,
-      };
-    });
+res.json(mapped);
 
-    res.json(mapped);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Gagal ambil data pengembalian" });
   }
 };
-
-const db = require("../models/db");
 
 exports.konfirmasi = async (req, res) => {
   const { id } = req.params;

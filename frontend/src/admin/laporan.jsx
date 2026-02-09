@@ -56,24 +56,51 @@ export default function Laporan() {
     });
   }, [rows, from, to]);
 
-  const stats = useMemo(() => {
-    const norm = (s) => String(s || "").toLowerCase();
-    let total = filtered.length;
-    let menunggu = 0;
-    let aktif = 0;
-    let selesai = 0;
-    let terlambat = 0;
+  // ===== helper =====
+const isReturned = (r) => {
+  const s = String(r?.status || "").toLowerCase();
+  return s.includes("kembali") || s.includes("selesai") || s.includes("dikembalikan");
+};
 
-    for (const r of filtered) {
-      const s = norm(r.status);
-      if (s.includes("menunggu") || s.includes("pending")) menunggu++;
-      else if (s.includes("aktif") || s.includes("dipinjam") || s.includes("disetujui")) aktif++;
-      else if (s.includes("kembali") || s.includes("selesai") || s.includes("dikembalikan")) selesai++;
-      else if (s.includes("telat") || s.includes("terlambat")) terlambat++;
-    }
+const isWaiting = (r) => {
+  const s = String(r?.status || "").toLowerCase();
+  return s.includes("menunggu") || s.includes("pending");
+};
 
-    return { total, menunggu, aktif, selesai, terlambat };
-  }, [filtered]);
+const isLateByDate = (r) => {
+  if (isReturned(r)) return false;
+
+  const due = r?.tanggal_kembali || r?.tglKembali;
+  if (!due) return false;
+
+  const dueDate = new Date(due);
+  if (isNaN(dueDate.getTime())) return false;
+
+  return new Date() > dueDate;
+};
+
+// ===== stats =====
+const stats = useMemo(() => {
+  let total = filtered.length;
+  let menunggu = 0;
+  let aktif = 0;
+  let selesai = 0;
+  let terlambat = 0;
+
+  for (const r of filtered) {
+    const returned = isReturned(r);
+    const waiting = isWaiting(r);
+    const late = isLateByDate(r);
+
+    if (returned) selesai++;
+    if (!returned) aktif++;
+    if (waiting) menunggu++;
+    if (late) terlambat++;
+  }
+
+  return { total, menunggu, aktif, selesai, terlambat };
+}, [filtered]);
+
 
   const exportCSV = () => {
     const headers = ["id", "peminjam", "no_hp", "alat", "tgl_pinjam", "tgl_kembali", "status"];
@@ -160,7 +187,7 @@ export default function Laporan() {
                     <td>{r.nama_alat ?? "-"}</td>
                     <td>{String(r.tanggal_pinjam ?? r.tglPinjam ?? "-")}</td>
                     <td>{String(r.tanggal_kembali ?? r.tglKembali ?? "-")}</td>
-                    <td>{r.status ?? "-"}</td>
+                    <td>{isLateByDate(r) ? "terlambat" : (r.status ?? "-")}</td>
                   </tr>
                 ))}
                 {filtered.length === 0 && (

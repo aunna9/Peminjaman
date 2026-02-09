@@ -134,38 +134,39 @@ export default function Pengembalian() {
             </thead>
 
             <tbody>
-              {filtered.map((r, i) => {
-                const statusLower = String(r.status || "").toLowerCase();
-                const sudahKembali = statusLower === "dikembalikan";
+{filtered.map((r, i) => {
+const statusLower = String(r.status || "").toLowerCase();
+const canConfirm = statusLower !== "dikembalikan" && r.id !== null;
 
-                return (
-                  <tr key={r.id ?? i}>
-                    <td>{i + 1}</td>
-                    <td>{r.id ?? "-"}</td>
-                    <td>{r.peminjam ?? "-"}</td>
-                    <td>{r.alat ?? "-"}</td>
-                    <td>{r.qty ?? 1}</td>
-                    <td>{r.tglPinjam ?? "-"}</td>
-                    <td>{r.tglKembali ?? "-"}</td>
-                    <td>
-                      <span className="badge">{r.status ?? "dipinjam"}</span>
-                    </td>
-                    <td>{Number(r.terlambatHari ?? 0)} hari</td>
-                    <td>Rp {rupiah(r.denda ?? 0)}</td>
-                    <td>
-                      {!sudahKembali && (
-                        <button
-                          className="btn-action btn-approve"
-                          onClick={() => konfirmasiPengembalian(r.id)}
-                        >
-                          Konfirmasi
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-
+  return (
+    <tr key={r.id ?? i}>
+      <td>{i + 1}</td>
+      <td>{r.id ?? "-"}</td>
+      <td>{r.peminjam ?? "-"}</td>
+      <td>{r.alat ?? "-"}</td>
+      <td>{r.qty ?? 1}</td>
+      <td>{r.tglPinjam ?? "-"}</td>
+      <td>{r.tglKembali ?? "-"}</td>
+      <td>
+        <span className="badge">{r.statusTampil ?? r.status ?? "-"}</span>
+      </td>
+      <td>{Number(r.terlambatHari ?? 0)} hari</td>
+      <td>Rp {rupiah(r.denda ?? 0)}</td>
+      <td>
+        {canConfirm ? (
+          <button
+            className="btn-action btn-approve"
+            onClick={() => konfirmasiPengembalian(r.id)}
+          >
+            Konfirmasi
+          </button>
+        ) : (
+          "-"
+        )}
+      </td>
+    </tr>
+  );
+})}
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan="12" style={{ textAlign: "center" }}>

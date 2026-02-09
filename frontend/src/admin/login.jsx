@@ -56,7 +56,7 @@ console.log("TOKEN ADA:", !!sessionStorage.getItem("token"));
     const role = (data.role || "").toLowerCase();
     if (role === "admin") navigate("/admin/dashboard", { replace: true });
     else if (role === "petugas") navigate("/admin/peminjaman", { replace: true });
-    else if (role === "peminjam") navigate("/peminjam", { replace: true });
+    else if (role === "peminjam") navigate("/peminjam/", { replace: true });
     else setError("Role tidak dikenali");
   } catch (err) {
     console.error("FETCH ERROR:", err);

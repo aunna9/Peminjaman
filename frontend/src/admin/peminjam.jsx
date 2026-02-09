@@ -48,6 +48,11 @@ const getAuthHeaders = () => {
     return Object.fromEntries(entries);
   }, [kategoriList]);
 
+  // Letakkan di bawah useMemo kategoriMap
+const adaKeterlambatan = useMemo(() => {
+  return pinjamanSaya.some(p => String(p.status || "").toLowerCase() === "terlambat");
+}, [pinjamanSaya]);
+
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(""), 2000);
@@ -235,26 +240,27 @@ const handleKembalikan = async (id) => {
   try {
     setError("");
 
-    const res = await fetch(`${API}/peminjam/${id}/kembalikan`, {
+    const res = await fetch(`${API}/peminjaman/${id}/kembalikan`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
-      body: JSON.stringify({ status: "Dikembalikan" }),
     });
 
-    const json = await res.json().catch(() => ({}));
+    const text = await res.text();
+    let json = {};
+    try { json = JSON.parse(text); } catch {}
+
     if (!res.ok) {
-      setError(json.message || "Gagal mengembalikan");
+      setError(json.message || text || "Gagal mengembalikan");
       return;
     }
 
-    showToast("Pengembalian berhasil");
+    showToast("Permintaan pengembalian dikirim (menunggu konfirmasi admin)");
     fetchPinjamanSaya();
     fetchAlat(kategoriId);
-  } catch {
-    setError("Gagal mengembalikan");
+  } catch (e) {
+    setError(e?.message || "Gagal mengembalikan");
   }
 };
 
@@ -347,9 +353,32 @@ const handleKembalikan = async (id) => {
         </div>
       )}
 
-      {tab === "pinjaman" && (
-        <div className="card">
-          <table className="table">
+{tab === "pinjaman" && (
+  <div className="card">
+    {/* --- BANNER PERINGATAN --- */}
+    {adaKeterlambatan && (
+      <div style={{ 
+        backgroundColor: "#fff5f5", 
+        borderLeft: "5px solid #ff4d4f", 
+        padding: "15px", 
+        marginBottom: "20px",
+        borderRadius: "4px",
+        color: "#852626"
+      }}>
+        <strong style={{ display: "block", marginBottom: "5px" }}>⚠️ Peringatan Keterlambatan!</strong>
+        <p style={{ margin: 0, fontSize: "0.9rem" }}>
+          Anda memiliki alat yang belum dikembalikan melewati batas waktu. 
+          Harap segera mengembalikan alat ke laboratorium untuk menghindari denda yang terus bertambah.
+        </p>
+      </div>
+    )}
+
+    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+      {/* Tombol Refresh kamu yang sudah ada */}
+      <button className="btn-outline" onClick={fetchPinjamanSaya}>🔄 Refresh</button>
+    </div>
+
+    <table className="table">
             <thead>
               <tr>
                 <th>Alat</th>
@@ -360,33 +389,35 @@ const handleKembalikan = async (id) => {
             </thead>
 
 <tbody>
-  {pinjamanSaya.length === 0 ? (
-    <tr>
-      <td colSpan="4" style={{ textAlign: "center", padding: 16 }}>
-        Belum ada pinjaman.
+{pinjamanSaya.map((p) => {
+  const id = p.id_peminjaman ?? p.id;
+  const st = String(p.status || "").toLowerCase();
+  const isLate = st === "terlambat";
+  const canReturn = st === "dipinjam" || isLate;
+
+  return (
+    <tr 
+      key={id} 
+      style={isLate ? { backgroundColor: "#fff1f0", transition: "0.3s" } : {}}
+    >
+      <td>{p.nama_alat || p.nama_alat_dipinjam || "-"}</td>
+      <td>{p.jumlah ?? 1}</td>
+      <td style={isLate ? { color: "#cf1322", fontWeight: "bold" } : {}}>
+        {p.status || "-"} {isLate && " (Segera Kembalikan!)"}
+      </td>
+      <td>
+        {canReturn ? (
+          <button className="btn-outline" onClick={() => handleKembalikan(id)}>
+            Kembalikan
+          </button>
+        ) : (
+          "-"
+        )}
       </td>
     </tr>
-  ) : (
-    pinjamanSaya.map((p) => (
-      <tr key={p.id_peminjaman ?? p.id}>
-        <td>{p.nama_alat || p.nama_alat_dipinjam || "-"}</td>
-        <td>{p.jumlah}</td>
-        <td>{p.status}</td>
-        <td>
-          {p.status?.toLowerCase() !== "dikembalikan" && (
-            <button
-              className="btn-outline"
-              onClick={() => handleKembalikan(p.id_peminjaman ?? p.id)}
-            >
-              Kembalikan
-            </button>
-          )}
-        </td>
-      </tr>
-    ))
-  )}
+  );
+})}
 </tbody>
-
           </table>
         </div>
       )}

@@ -4,14 +4,15 @@
   box-sizing: border-box;
 }
 
-/* WRAPPER */
 .admin-layout {
   display: flex;
   min-height: 100vh;
   width: 100%;
+
+  /* ✅ ini kuncinya */
+  padding-left: 250px;
 }
 
-/* SIDEBAR */
 .sidebar {
   width: 250px;
   background-color: #ffeccd;
@@ -20,14 +21,15 @@
 
   display: flex;
   flex-direction: column;
-
   flex-shrink: 0;
 
-  /* biar stay saat scroll */
-  position: sticky;
+  /* ✅ bikin sidebar tetap */
+  position: fixed;
   top: 0;
+  left: 0;
   height: 100vh;
   overflow-y: auto;
+  z-index: 1000;
 }
 
 .sidebar-title {
@@ -71,11 +73,16 @@
   font-weight: bold;
 }
 
-/* KONTEN KANAN */
 .admin-content {
   flex: 1;
-  min-width: 0;       /* penting agar tabel tidak maksa melebar */
+  min-width: 0;
   background-color: #ffdfae;
   padding: 20px;
-  overflow: auto;     /* scroll di kanan */
+
+  /* ✅ kasih jarak biar ga ketutup sidebar */
+  margin-left: 250px;
+
+  /* scroll di kanan tetap boleh */
+  overflow: auto;
+  height: 100vh;
 }

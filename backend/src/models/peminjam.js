@@ -1,5 +1,4 @@
-// models/peminjam.js
-const db = require("../config/db"); // <-- sesuaikan path db kamu (pool mysql2/promise)
+const db = require("../models/db");
 
 const PeminjamModel = {
   // 1) Ajukan peminjaman (status awal: menunggu)

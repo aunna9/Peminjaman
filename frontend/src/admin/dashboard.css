@@ -254,3 +254,25 @@ tbody tr:hover{
 .tglCol{
   max-width: 170px;
 }
+.dashboard-alert {
+  background: #fff5f5;
+  border-left: 5px solid #d00000;
+  padding: 12px 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.dashboard-alert.danger {
+  color: #b00000;
+}
+.alertLate{
+  background: #fff5f5;
+  border: 1px solid #ffd1d1;
+  border-left: 6px solid #d00000;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin: 14px 0 18px;
+  font-weight: 700;
+  color: #b00000;
+}

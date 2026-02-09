@@ -112,16 +112,35 @@ const deletePeminjaman = async (id) => {
   }
 };
 
+const isReturned = (r) => {
+  const s = String(r?.status || "").toLowerCase();
+  return s.includes("kembali") || s.includes("selesai") || s.includes("dikembalikan");
+};
+
+const isLateByDate = (r) => {
+  if (isReturned(r)) return false;
+
+  const due = r?.tanggal_kembali || r?.tglKembali;
+  if (!due) return false;
+
+  const dueDate = new Date(due);
+  if (isNaN(dueDate.getTime())) return false;
+
+  return new Date() > dueDate;
+};
+
+// status untuk tampilan (yang dipakai badge & filter)
+const displayStatus = (r) => (isLateByDate(r) ? "terlambat" : (r.status || "-"));
+
   // ====== filter/search di frontend ======
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
 
-    return rows
-.filter((r) =>
-  status === "Semua"
-    ? true
-    : String(r.status || "").toLowerCase() === String(status).toLowerCase()
-)
+return rows
+  .filter((r) => {
+    if (status === "Semua") return true;
+    return String(displayStatus(r)).toLowerCase() === String(status).toLowerCase();
+  })
 
       .filter((r) => {
         if (!s) return true;
@@ -214,46 +233,53 @@ const deletePeminjaman = async (id) => {
             </thead>
 
             <tbody>
-              {filtered.map((r, idx) => {
-                const id = r.id_peminjaman ?? r.id;
-                return (
-                  <tr key={id ?? idx}>
-                    <td>{idx + 1}</td>
-                    <td>{id ?? "-"}</td>
-                    <td>{r.nama_peminjam ?? r.username ?? r.peminjam ?? "-"}</td>
-                    <td>{r.no_hp ?? "-"}</td>
-                    <td>{r.alat ?? r.nama_alat ?? "-"}</td>
-                    <td>{r.tglPinjam ?? r.tanggal_pinjam ?? "-"}</td>
-                    <td>{r.tglKembali ?? r.tanggal_kembali ?? "-"}</td>
-                    <td>
-                      <span className={badgeClass(r.status)}>{r.status}</span>
-                    </td>
-                    <td style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+{filtered.map((r, idx) => {
+  const id = r.id_peminjaman ?? r.id;
+  const st = displayStatus(r); // ✅ ini yang kurang
 
-                      <button
-                        className="btn-action btn-approve"
-                        onClick={() => updateStatus(id, "dipinjam")}
-                      >
-                        Setujui
-                      </button>
+  return (
+    <tr key={id ?? idx}>
+      <td>{idx + 1}</td>
+      <td>{id ?? "-"}</td>
+      <td>{r.nama_peminjam ?? r.username ?? r.peminjam ?? "-"}</td>
+      <td>{r.no_hp ?? "-"}</td>
+      <td>{r.alat ?? r.nama_alat ?? "-"}</td>
+      <td>{r.tglPinjam ?? r.tanggal_pinjam ?? "-"}</td>
+      <td>{r.tglKembali ?? r.tanggal_kembali ?? "-"}</td>
 
-                      <button
-                        className="btn-action btn-reject"
-                        onClick={() => updateStatus(id, "ditolak")}
-                      >
-                        Tolak
-                      </button>
+      <td>
+        <span className={badgeClass(st)}>{st}</span>
+      </td>
 
-                      <button
-                        className="btn-action btn-reject"
-                        onClick={() => deletePeminjaman(id)}
-                      >
-                        Hapus
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+      <td style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {/* contoh: tombol Setujui disembunyikan kalau telat / sudah kembali */}
+        {!isReturned(r) && !isLateByDate(r) && (
+          <button
+            className="btn-action btn-approve"
+            onClick={() => updateStatus(id, "dipinjam")}
+          >
+            Setujui
+          </button>
+        )}
+
+        <button
+          className="btn-action btn-reject"
+          onClick={() => updateStatus(id, "ditolak")}
+        >
+          Tolak
+        </button>
+
+        <button
+          className="btn-action btn-reject"
+          onClick={() => deletePeminjaman(id)}
+        >
+          Hapus
+        </button>
+      </td>
+    </tr>
+  );
+})}
+
 
               {filtered.length === 0 && (
                 <tr>

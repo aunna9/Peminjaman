@@ -169,3 +169,28 @@ exports.remove = async (req, res) => {
     return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+exports.requestReturn = async (req, res) => {
+  const id = req.params.id;
+  const userId = req.user?.id || req.user?.id_user;
+
+  const [[row]] = await db.query(
+    "SELECT id_user, status FROM peminjaman WHERE id_peminjaman=?",
+    [id]
+  );
+
+  if (!row) return res.status(404).json({ message: "Data tidak ditemukan" });
+  if (row.id_user !== userId) return res.status(403).json({ message: "Bukan peminjaman kamu" });
+
+  const st = String(row.status || "").toLowerCase();
+  if (st !== "dipinjam" && st !== "terlambat") {
+    return res.status(400).json({ message: `Tidak bisa kembalikan dari status: ${st}` });
+  }
+
+await db.query(
+  "UPDATE peminjaman SET status='menunggu pengembalian' WHERE id_peminjaman=?",
+  [id]
+);
+
+  return res.json({ message: "Menunggu konfirmasi admin." });
+};

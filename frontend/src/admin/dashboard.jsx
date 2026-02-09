@@ -25,6 +25,21 @@ export default function Dashboard() {
     return raw || "-";
   };
 
+  const isLateByDate = (item) => {
+  const stRaw = String(item?.status ?? "").toLowerCase();
+
+  // kalau sudah dikembalikan, jangan dihitung terlambat
+  if (stRaw.includes("kembali") || stRaw.includes("selesai")) return false;
+
+  const due = item?.tanggal_kembali || item?.jatuh_tempo;
+  if (!due) return false;
+
+  const dueDate = new Date(due);
+  if (isNaN(dueDate.getTime())) return false;
+
+  return new Date() > dueDate;
+};
+
   useEffect(() => {
     let alive = true;
 
@@ -57,16 +72,27 @@ const res = await fetch(`${API}/peminjaman`, {
         const data = await res.json(); // sekarang aman
         const list = Array.isArray(data) ? data : (data?.data ?? []);
 
-        const counts = list.reduce(
-          (acc, item) => {
-            const st = normalizeStatus(item.status);
-            if (st === "Dipinjam") acc.peminjamanAktif += 1;
-            else if (st === "Menunggu") acc.menunggu += 1;
-            else if (st === "Terlambat") acc.terlambat += 1;
-            return acc;
-          },
-          { peminjamanAktif: 0, menunggu: 0, terlambat: 0 }
-        );
+const counts = list.reduce(
+  (acc, item) => {
+    const stRaw = String(item?.status ?? "").toLowerCase();
+    const returned = stRaw.includes("kembali") || stRaw.includes("selesai");
+
+    const late = isLateByDate(item);
+
+    // AKTIF = belum dikembalikan (dipinjam/menunggu/terlambat)
+    if (!returned) acc.peminjamanAktif += 1;
+
+    // Menunggu
+    const st = normalizeStatus(item.status);
+    if (st === "Menunggu") acc.menunggu += 1;
+
+    // Terlambat (berdasarkan tanggal)
+    if (late) acc.terlambat += 1;
+
+    return acc;
+  },
+  { peminjamanAktif: 0, menunggu: 0, terlambat: 0 }
+);
 
         // ambil 5 terbaru (kalau ada created_at / tanggal)
         const terbaru = [...list]
