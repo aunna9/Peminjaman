@@ -1,13 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import "./pengembalian.css";
 
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+const API_URL = `${BASE_URL}/api/pengembalian`;
+
+/* ============== AUTH (sinkron) ============== */
+const getToken = () => {
+  let token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  if (token && token.startsWith('"') && token.endsWith('"')) token = token.slice(1, -1);
+  return token;
+};
+const getAuthHeaders = () => {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 export default function Pengembalian() {
-  const API_URL = "http://localhost:8080/api/pengembalian";
-
-  const token = sessionStorage.getItem("token");
-
-  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
-
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,8 +28,11 @@ export default function Pengembalian() {
     setError("");
 
     try {
+      const token = getToken();
+      if (!token) throw new Error("Token tidak ada. Silakan login ulang.");
+
       const res = await fetch(API_URL, {
-        headers: { ...authHeaders },
+        headers: { ...getAuthHeaders() },
       });
 
       if (res.status === 401) throw new Error("401 Unauthorized (token belum benar / belum login)");
@@ -31,7 +42,6 @@ export default function Pengembalian() {
       const list = Array.isArray(data) ? data : data.data ?? [];
       setRows(list);
     } catch (err) {
-      console.error(err);
       setError(err.message || "Terjadi kesalahan");
     } finally {
       setLoading(false);
@@ -54,7 +64,7 @@ export default function Pengembalian() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          ...authHeaders,
+          ...getAuthHeaders(),
         },
       });
 
@@ -63,7 +73,6 @@ export default function Pengembalian() {
 
       await fetchPengembalian();
     } catch (err) {
-      console.error(err);
       alert(err.message || "Gagal memproses pengembalian");
     }
   };
@@ -74,8 +83,11 @@ export default function Pengembalian() {
     return rows.filter((r) =>
       [
         r.peminjam,
+        r.nama_peminjam,
         r.alat,
+        r.nama_alat,
         r.status,
+        r.statusTampil,
         r.tglPinjam,
         r.tglKembali,
         String(r.terlambatHari ?? ""),
@@ -98,7 +110,7 @@ export default function Pengembalian() {
       <div className="action-bar">
         <input
           className="search-input"
-          placeholder="Cari (peminjam / kelas / alat / status)..."
+          placeholder="Cari (peminjam / alat / status)..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -134,39 +146,42 @@ export default function Pengembalian() {
             </thead>
 
             <tbody>
-{filtered.map((r, i) => {
-const statusLower = String(r.status || "").toLowerCase();
-const canConfirm = statusLower !== "dikembalikan" && r.id !== null;
+              {filtered.map((r, i) => {
+                const statusLower = String(r.status || "").toLowerCase();
 
-  return (
-    <tr key={r.id ?? i}>
-      <td>{i + 1}</td>
-      <td>{r.id ?? "-"}</td>
-      <td>{r.peminjam ?? "-"}</td>
-      <td>{r.alat ?? "-"}</td>
-      <td>{r.qty ?? 1}</td>
-      <td>{r.tglPinjam ?? "-"}</td>
-      <td>{r.tglKembali ?? "-"}</td>
-      <td>
-        <span className="badge">{r.statusTampil ?? r.status ?? "-"}</span>
-      </td>
-      <td>{Number(r.terlambatHari ?? 0)} hari</td>
-      <td>Rp {rupiah(r.denda ?? 0)}</td>
-      <td>
-        {canConfirm ? (
-          <button
-            className="btn-action btn-approve"
-            onClick={() => konfirmasiPengembalian(r.id)}
-          >
-            Konfirmasi
-          </button>
-        ) : (
-          "-"
-        )}
-      </td>
-    </tr>
-  );
-})}
+                // ✅ sinkron: konfirmasi hanya kalau status “menunggu pengembalian”
+                const canConfirm =
+                  statusLower.includes("menunggu pengembalian") ||
+                  statusLower.includes("menunggu konfirmasi") ||
+                  statusLower.includes("proses kembali");
+
+                return (
+                  <tr key={r.id ?? i}>
+                    <td>{i + 1}</td>
+                    <td>{r.id ?? "-"}</td>
+                    <td>{r.peminjam ?? r.nama_peminjam ?? "-"}</td>
+                    <td>{r.alat ?? r.nama_alat ?? "-"}</td>
+                    <td>{r.qty ?? 1}</td>
+                    <td>{r.tglPinjam ?? "-"}</td>
+                    <td>{r.tglKembali ?? "-"}</td>
+                    <td>
+                      <span className="badge">{r.statusTampil ?? r.status ?? "-"}</span>
+                    </td>
+                    <td>{Number(r.terlambatHari ?? 0)} hari</td>
+                    <td>Rp {rupiah(r.denda ?? 0)}</td>
+                    <td>
+                      {canConfirm ? (
+                        <button className="btn-action btn-approve" onClick={() => konfirmasiPengembalian(r.id)}>
+                          Konfirmasi
+                        </button>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan="12" style={{ textAlign: "center" }}>

@@ -183,14 +183,6 @@ return (
             <div className="cardValue">{summary.menunggu}</div>
             <div className="cardHint">Dari /api/peminjaman</div>
           </div>
-
-          <div className="card">
-            <div className="cardTop">
-              <div className="cardLabel">Terlambat</div>
-            </div>
-            <div className="cardValue red">{summary.terlambat}</div>
-            <div className="cardHint">Dari /api/peminjaman</div>
-          </div>
         </div>
 
         {/* tabel peminjaman terbaru */}

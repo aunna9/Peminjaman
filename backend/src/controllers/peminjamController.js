@@ -67,6 +67,7 @@ exports.getMine = async (req, res) => {
           a.nama_alat,
           p.tanggal_pinjam,
           p.tanggal_kembali,
+          p.alasan_tolak,
           p.status,
           p.created_at
        FROM peminjaman p

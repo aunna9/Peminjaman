@@ -10,17 +10,108 @@ const normalizeList = (payload) => {
   return [];
 };
 
+/* ============== AUTH (sinkron) ============== */
+const getToken = () => {
+  let token = sessionStorage.getItem("token") || localStorage.getItem("token");
+  if (token && token.startsWith('"') && token.endsWith('"')) token = token.slice(1, -1);
+  return token;
+};
+const getAuthHeaders = () => {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+/* ============== STATUS HELPERS (sinkron) ============== */
+const isReturned = (p) => {
+  const s = String(p?.status || "").toLowerCase();
+  return s.includes("dikembalikan") || s.includes("selesai") || s.includes("kembali");
+};
+
+const isActiveForLate = (p) => {
+  // telat dihitung hanya untuk peminjaman yang "aktif" (sudah dipinjam / proses kembali)
+  const s = String(p?.status || "").toLowerCase();
+  if (isReturned(p)) return false;
+  if (s === "dipinjam") return true;
+  if (s.includes("menunggu pengembalian")) return true; // sudah minta balik, tapi belum dikonfirmasi admin
+  return false; // menunggu (pengajuan) / ditolak => jangan dihitung telat
+};
+
+const isLateByDate = (p) => {
+  if (!isActiveForLate(p)) return false;
+
+  const due = p?.tanggal_kembali || p?.tglKembali || p?.tgl_kembali_rencana;
+  if (!due) return false;
+
+  const dueDate = new Date(due);
+  if (isNaN(dueDate.getTime())) return false;
+
+  // anggap jatuh tempo sampai akhir hari
+  dueDate.setHours(23, 59, 59, 999);
+  return new Date() > dueDate;
+};
+
+const displayStatus = (p) => (isLateByDate(p) ? "terlambat" : p?.status || "-");
+
+const DENDA_PER_HARI = 2000;
+
+const rupiah = (n) => Number(n || 0).toLocaleString("id-ID");
+
+const hitungTerlambatHariFront = (p) => {
+  const statusDb = String(p?.status || "").toLowerCase();
+  const due = p?.tanggal_kembali || p?.tglKembali || p?.tgl_kembali_rencana;
+  if (!due) return 0;
+
+  // sesuai backend: hanya hitung jika status aktif
+  if (!["dipinjam", "terlambat", "menunggu pengembalian"].includes(statusDb)) return 0;
+
+  const dueDate = new Date(due);
+  if (isNaN(dueDate.getTime())) return 0;
+
+  // sesuai backend: DATEDIFF(CURDATE(), DATE(tanggal_kembali))
+  const today = new Date();
+  const todayDateOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+
+  const diffMs = todayDateOnly - dueDateOnly;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  return Math.max(0, diffDays);
+};
+
+const getStatusTampil = (p) => {
+  const statusDb = String(p?.status || "").toLowerCase();
+  const terlambatHari = p?.terlambatHari ?? hitungTerlambatHariFront(p);
+
+  if (statusDb === "menunggu pengembalian") return "menunggu pengembalian";
+  if (terlambatHari > 0 && ["dipinjam", "terlambat"].includes(statusDb)) return "terlambat";
+  return p?.status || "-";
+};
+
 export default function PeminjamPage() {
   const [tab, setTab] = useState("alat");
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+
+  const [showDetail, setShowDetail] = useState(false);
+  const [detailData, setDetailData] = useState(null);
+
+  // ===== MODAL DETAIL =====
+const openDetailModal = (p) => {
+  setDetailData(p);
+  setShowDetail(true);
+};
+
+const closeDetailModal = () => {
+  setShowDetail(false);
+  setDetailData(null);
+};
 
   const [kategoriList, setKategoriList] = useState([]);
   const [alatList, setAlatList] = useState([]);
   const [pinjamanSaya, setPinjamanSaya] = useState([]);
 
   const [kategoriId, setKategoriId] = useState("");
-
+  const [qAlat, setQAlat] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [alatDipilih, setAlatDipilih] = useState(null);
   const [formPinjam, setFormPinjam] = useState({
@@ -31,27 +122,14 @@ export default function PeminjamPage() {
     keperluan: "",
   });
 
-const getAuthHeaders = () => {
-  let token = sessionStorage.getItem("token"); // ✅ pakai let
-
-  // kalau token tersimpan '"abc"', hilangkan kutipnya
-  if (token && token.startsWith('"') && token.endsWith('"')) {
-    token = token.slice(1, -1);
-  }
-
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
   const kategoriMap = useMemo(() => {
-    // map: id_kategori -> nama_kategori
     const entries = kategoriList.map((k) => [k.id_kategori, k.nama_kategori]);
     return Object.fromEntries(entries);
   }, [kategoriList]);
 
-  // Letakkan di bawah useMemo kategoriMap
-const adaKeterlambatan = useMemo(() => {
-  return pinjamanSaya.some(p => String(p.status || "").toLowerCase() === "terlambat");
-}, [pinjamanSaya]);
+  const adaKeterlambatan = useMemo(() => {
+    return pinjamanSaya.some((p) => String(displayStatus(p)).toLowerCase() === "terlambat");
+  }, [pinjamanSaya]);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -63,7 +141,7 @@ const adaKeterlambatan = useMemo(() => {
   const fetchKategori = async () => {
     try {
       setError("");
-      const res = await fetch(`${API}/kategori`, { headers: getAuthHeaders()});
+      const res = await fetch(`${API}/kategori`, { headers: getAuthHeaders() });
       const json = await res.json().catch(() => ({}));
 
       if (!res.ok) {
@@ -83,8 +161,6 @@ const adaKeterlambatan = useMemo(() => {
     try {
       setError("");
       const url = new URL(`${API}/alat`);
-      // backend kamu mungkin belum support filter query.
-      // tapi aman kalau dikirim, kalau tidak dipakai ya tidak masalah.
       if (kid) url.searchParams.set("id_kategori", kid);
 
       const res = await fetch(url.toString(), { headers: getAuthHeaders() });
@@ -103,37 +179,32 @@ const adaKeterlambatan = useMemo(() => {
     }
   };
 
-const fetchPinjamanSaya = async () => {
-  try {
-    setError("");
+  const fetchPinjamanSaya = async () => {
+    try {
+      setError("");
 
-const token = sessionStorage.getItem("token");
-console.log("TOKEN DI PeminjamPage:", token);
-console.log("ROLE DI PeminjamPage:", sessionStorage.getItem("role"));
+      const res = await fetch(`${API}/peminjam/me`, {
+        headers: getAuthHeaders(),
+      });
 
-    const res = await fetch(`${API}/peminjam/me`, {
-      headers: getAuthHeaders(),
-    });
+      const text = await res.text();
+      let json = {};
+      try {
+        json = JSON.parse(text);
+      } catch {}
 
-    const text = await res.text();
-    console.log("ME STATUS:", res.status);
-    console.log("ME RAW:", text);
+      if (!res.ok) {
+        setPinjamanSaya([]);
+        setError(json.message || text || "Gagal ambil pinjaman");
+        return;
+      }
 
-    let json = {};
-    try { json = JSON.parse(text); } catch {}
-
-    if (!res.ok) {
+      setPinjamanSaya(normalizeList(json));
+    } catch (e) {
       setPinjamanSaya([]);
-      setError(json.message || text || "Gagal ambil pinjaman");
-      return;
+      setError(e?.message || "Gagal ambil pinjaman");
     }
-
-    setPinjamanSaya(normalizeList(json));
-  } catch (e) {
-    setPinjamanSaya([]);
-    setError(e?.message || "Gagal ambil pinjaman");
-  }
-};
+  };
 
   /* ================= EFFECTS ================= */
 
@@ -141,28 +212,22 @@ console.log("ROLE DI PeminjamPage:", sessionStorage.getItem("role"));
     fetchKategori();
   }, []);
 
-useEffect(() => {
-  if (tab === "alat") {
-    fetchAlat(kategoriId);
-  }
-}, [kategoriId, tab]);
+  useEffect(() => {
+    if (tab === "alat") fetchAlat(kategoriId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kategoriId, tab]);
 
-useEffect(() => {
-  if (tab === "pinjaman") {
-    fetchPinjamanSaya();
-  }
-}, [tab]);
+  useEffect(() => {
+    if (tab === "pinjaman") fetchPinjamanSaya();
+  }, [tab]);
 
-const handleLogout = () => {
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("role");
-
-  // bersihin sisa lama biar gak ganggu
-  localStorage.removeItem("token");
-  localStorage.removeItem("role");
-
-  window.location.href = "/login";
-};
+  const handleLogout = () => {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("role");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    window.location.href = "/login";
+  };
 
   const openModalPinjam = (alat) => {
     setError("");
@@ -182,131 +247,123 @@ const handleLogout = () => {
     setAlatDipilih(null);
   };
 
-const submitAjukan = async (e) => {
-  e.preventDefault();
-  setError("");
-
-  console.log("SUBMIT KEPANGGIL ✅");
-
-  if (!alatDipilih) return setError("Alat belum dipilih");
-
-  const payload = {
-    id_alat: alatDipilih.id_alat,
-    jumlah: Number(formPinjam.jumlah),
-    tanggal_pinjam: formPinjam.tgl_pinjam,
-    tanggal_kembali: formPinjam.tgl_kembali_rencana,
-   // keperluan: formPinjam.keperluan, // Aktifkan jika ingin disimpan
-    no_hp: formPinjam.no_hp,
-  };
-
-  try {
-    const res = await fetch(`${API}/peminjaman`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const json = await res.json().catch(() => ({})); 
-    console.log("STATUS:", res.status);
-
-    if (!res.ok) {
-      setError(json.message || "Gagal mengajukan peminjaman");
-      return;
-    }
-
-    // Reset Form & Tutup Modal
-    setShowModal(false);
-    showToast("Pengajuan berhasil");
-
-    // Pindah Tab dan Refresh Data
-    setTab("pinjaman");
-    
-    // Beri sedikit delay agar transaksi database benar-benar selesai sebelum fetch ulang
-    setTimeout(() => {
-      fetchPinjamanSaya();
-      fetchAlat(kategoriId);
-    }, 300);
-
-  } catch (err) {
-    console.log("FETCH ERROR:", err);
-    setError("Terjadi kesalahan koneksi");
-  }
-};
-
-const handleKembalikan = async (id) => {
-  try {
+  const submitAjukan = async (e) => {
+    e.preventDefault();
     setError("");
 
-    const res = await fetch(`${API}/peminjaman/${id}/kembalikan`, {
-      method: "PUT",
-      headers: {
-        ...getAuthHeaders(),
-      },
-    });
+    if (!alatDipilih) return setError("Alat belum dipilih");
 
-    const text = await res.text();
-    let json = {};
-    try { json = JSON.parse(text); } catch {}
+    const payload = {
+      id_alat: alatDipilih.id_alat,
+      jumlah: Number(formPinjam.jumlah),
+      tanggal_pinjam: formPinjam.tgl_pinjam,
+      tanggal_kembali: formPinjam.tgl_kembali_rencana,
+      no_hp: formPinjam.no_hp,
+      keperluan: formPinjam.keperluan, // ✅ disinkronkan: kirim juga (kalau backend sudah siap)
+    };
 
-    if (!res.ok) {
-      setError(json.message || text || "Gagal mengembalikan");
-      return;
+    try {
+      const res = await fetch(`${API}/peminjaman`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(json.message || "Gagal mengajukan peminjaman");
+        return;
+      }
+
+      setShowModal(false);
+      showToast("Pengajuan berhasil");
+      setTab("pinjaman");
+
+      setTimeout(() => {
+        fetchPinjamanSaya();
+        fetchAlat(kategoriId);
+      }, 300);
+    } catch {
+      setError("Terjadi kesalahan koneksi");
     }
+  };
 
-    showToast("Permintaan pengembalian dikirim (menunggu konfirmasi admin)");
-    fetchPinjamanSaya();
-    fetchAlat(kategoriId);
-  } catch (e) {
-    setError(e?.message || "Gagal mengembalikan");
-  }
-};
+  const handleKembalikan = async (id) => {
+    try {
+      setError("");
+
+      const res = await fetch(`${API}/peminjaman/${id}/kembalikan`, {
+        method: "PUT",
+        headers: { ...getAuthHeaders() },
+      });
+
+      const text = await res.text();
+      let json = {};
+      try {
+        json = JSON.parse(text);
+      } catch {}
+
+      if (!res.ok) {
+        setError(json.message || text || "Gagal mengembalikan");
+        return;
+      }
+
+      showToast("Permintaan pengembalian dikirim (menunggu konfirmasi admin)");
+      fetchPinjamanSaya();
+    } catch (e) {
+      setError(e?.message || "Gagal mengembalikan");
+    }
+  };
+
+const filteredAlatList = useMemo(() => {
+  const kw = qAlat.trim().toLowerCase();
+  if (!kw) return alatList;
+
+  return alatList.filter((a) => {
+    const nama = String(a.nama_alat ?? "").toLowerCase();
+    const kat = String(a.nama_kategori ?? kategoriMap[a.id_kategori] ?? "").toLowerCase();
+    const kondisi = String(a.kondisi ?? "").toLowerCase();
+
+    return (
+      nama.includes(kw) ||
+      kat.includes(kw) ||
+      kondisi.includes(kw) ||
+      String(a.stok ?? "").includes(kw)
+    );
+  });
+}, [alatList, qAlat, kategoriMap]);
 
   /* ================= RENDER ================= */
 
   return (
     <div className="peminjam-container">
-      <div
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  }}
->
-  <h1 className="peminjam-title">PEMINJAMAN LABORATORIUM SEKOLAH</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1 className="peminjam-title">PEMINJAMAN LABORATORIUM SEKOLAH</h1>
 
-  <button className="btn-logout" onClick={handleLogout}>
-    Logout
-  </button>
-</div>
+        <button className="btn-logout" onClick={handleLogout}>
+          Logout
+        </button>
+      </div>
 
       {toast && <div className="toast-success">{toast}</div>}
       {error && <div className="alert-error">{error}</div>}
 
       <div className="peminjam-tabs">
-        <button
-          className={tab === "alat" ? "tab active" : "tab"}
-          onClick={() => setTab("alat")}
-        >
+        <button className={tab === "alat" ? "tab active" : "tab"} onClick={() => setTab("alat")}>
           Daftar Alat
         </button>
-        <button
-          className={tab === "pinjaman" ? "tab active" : "tab"}
-          onClick={() => setTab("pinjaman")}
-        >
+        <button className={tab === "pinjaman" ? "tab active" : "tab"} onClick={() => setTab("pinjaman")}>
           Pinjaman Saya
         </button>
       </div>
 
       {tab === "alat" && (
         <div className="card">
-          <select
-            className="select"
-            value={kategoriId}
-            onChange={(e) => setKategoriId(e.target.value)}
-          >
+          <select className="select" value={kategoriId} onChange={(e) => setKategoriId(e.target.value)}>
             <option value="">Semua Kategori</option>
             {kategoriList.map((k) => (
               <option key={k.id_kategori} value={k.id_kategori}>
@@ -314,6 +371,26 @@ const handleKembalikan = async (id) => {
               </option>
             ))}
           </select>
+
+          <div className="alat-toolbar">
+  <input
+    className="alat-search"
+    type="text"
+    placeholder="Cari alat/kategori/kondisi/stok..."
+    value={qAlat}
+    onChange={(e) => setQAlat(e.target.value)}
+  />
+  {qAlat && (
+    <button
+      type="button"
+      className="btn-outline"
+      onClick={() => setQAlat("")}
+      title="Reset pencarian"
+    >
+      Reset
+    </button>
+  )}
+</div>
 
           <table className="table">
             <thead>
@@ -327,58 +404,61 @@ const handleKembalikan = async (id) => {
             </thead>
 
             <tbody>
-              {alatList.length === 0 ? (
-                <tr>
-                  <td colSpan="5" style={{ textAlign: "center", padding: 16 }}>
-                    Data alat belum ada / gagal dimuat.
-                  </td>
-                </tr>
-              ) : (
-                alatList.map((a) => (
-                  <tr key={a.id_alat}>
-                    <td>{a.nama_alat}</td>
-                    <td>{a.nama_kategori || kategoriMap[a.id_kategori] || a.id_kategori}</td>
-                    <td>{a.stok}</td>
-                    <td>{a.kondisi}</td>
-                    <td>
-                      <button className="btn-primary" onClick={() => openModalPinjam(a)}>
-                        Pinjam
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+{filteredAlatList.length === 0 ? (
+  <tr>
+    <td colSpan="5" style={{ textAlign: "center", padding: 16 }}>
+      Data tidak ditemukan.
+    </td>
+  </tr>
+) : (
+  filteredAlatList.map((a) => (
+    <tr key={a.id_alat}>
+      <td>{a.nama_alat}</td>
+      <td>{a.nama_kategori || kategoriMap[a.id_kategori] || a.id_kategori}</td>
+      <td>{a.stok}</td>
+      <td>{a.kondisi}</td>
+      <td>
+        <button className="btn-primary" onClick={() => openModalPinjam(a)}>
+          Pinjam
+        </button>
+      </td>
+    </tr>
+  ))
+)}
+
             </tbody>
           </table>
         </div>
       )}
 
-{tab === "pinjaman" && (
-  <div className="card">
-    {/* --- BANNER PERINGATAN --- */}
-    {adaKeterlambatan && (
-      <div style={{ 
-        backgroundColor: "#fff5f5", 
-        borderLeft: "5px solid #ff4d4f", 
-        padding: "15px", 
-        marginBottom: "20px",
-        borderRadius: "4px",
-        color: "#852626"
-      }}>
-        <strong style={{ display: "block", marginBottom: "5px" }}>⚠️ Peringatan Keterlambatan!</strong>
-        <p style={{ margin: 0, fontSize: "0.9rem" }}>
-          Anda memiliki alat yang belum dikembalikan melewati batas waktu. 
-          Harap segera mengembalikan alat ke laboratorium untuk menghindari denda yang terus bertambah.
-        </p>
-      </div>
-    )}
+      {tab === "pinjaman" && (
+        <div className="card">
+          {adaKeterlambatan && (
+            <div
+              style={{
+                backgroundColor: "#fff5f5",
+                borderLeft: "5px solid #ff4d4f",
+                padding: "15px",
+                marginBottom: "20px",
+                borderRadius: "4px",
+                color: "#852626",
+              }}
+            >
+              <strong style={{ display: "block", marginBottom: "5px" }}>⚠️ Peringatan Keterlambatan!</strong>
+              <p style={{ margin: 0, fontSize: "0.9rem" }}>
+                Anda memiliki alat yang belum dikembalikan melewati batas waktu. Harap segera mengembalikan alat ke
+                laboratorium untuk menghindari denda yang terus bertambah.
+              </p>
+            </div>
+          )}
 
-    <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
-      {/* Tombol Refresh kamu yang sudah ada */}
-      <button className="btn-outline" onClick={fetchPinjamanSaya}>🔄 Refresh</button>
-    </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "1rem" }}>
+            <button className="btn-outline" onClick={fetchPinjamanSaya}>
+              🔄 Refresh
+            </button>
+          </div>
 
-    <table className="table">
+          <table className="table">
             <thead>
               <tr>
                 <th>Alat</th>
@@ -388,36 +468,41 @@ const handleKembalikan = async (id) => {
               </tr>
             </thead>
 
-<tbody>
+            <tbody>
 {pinjamanSaya.map((p) => {
   const id = p.id_peminjaman ?? p.id;
-  const st = String(p.status || "").toLowerCase();
-  const isLate = st === "terlambat";
-  const canReturn = st === "dipinjam" || isLate;
+
+  const st = displayStatus(p);
+  const stLower = String(st).toLowerCase();
+  const isLate = stLower === "terlambat";
 
   return (
-    <tr 
-      key={id} 
-      style={isLate ? { backgroundColor: "#fff1f0", transition: "0.3s" } : {}}
-    >
+    <tr key={id} style={isLate ? { backgroundColor: "#fff1f0", transition: "0.3s" } : {}}>
       <td>{p.nama_alat || p.nama_alat_dipinjam || "-"}</td>
       <td>{p.jumlah ?? 1}</td>
+
       <td style={isLate ? { color: "#cf1322", fontWeight: "bold" } : {}}>
-        {p.status || "-"} {isLate && " (Segera Kembalikan!)"}
+        {st} {isLate && " (Segera Kembalikan!)"}
       </td>
+
       <td>
-        {canReturn ? (
-          <button className="btn-outline" onClick={() => handleKembalikan(id)}>
-            Kembalikan
-          </button>
-        ) : (
-          "-"
-        )}
+        <button className="btn-outline" onClick={() => openDetailModal(p)}>
+          Detail
+        </button>
       </td>
     </tr>
   );
 })}
-</tbody>
+
+
+              {pinjamanSaya.length === 0 && (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: "center", padding: 16 }}>
+                    Belum ada data pinjaman.
+                  </td>
+                </tr>
+              )}
+            </tbody>
           </table>
         </div>
       )}
@@ -427,95 +512,144 @@ const handleKembalikan = async (id) => {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>Ajukan Peminjaman</h3>
 
-<form onSubmit={submitAjukan} className="modal-form">
-  <div className="form-group">
-    <label>Nama Alat</label>
-    <input value={alatDipilih?.nama_alat || ""} readOnly />
-    <small className="hint">Alat dipinjam</small>
-  </div>
+            <form onSubmit={submitAjukan} className="modal-form">
+              <div className="form-group">
+                <label>Nama Alat</label>
+                <input value={alatDipilih?.nama_alat || ""} readOnly />
+                <small className="hint">Alat dipinjam</small>
+              </div>
 
-  <div className="form-group">
-    <label>Jumlah</label>
-    <input
-      type="number"
-      min="1"
-      max={alatDipilih?.stok || 999}
-      value={formPinjam.jumlah}
-      onChange={(e) => setFormPinjam({ ...formPinjam, jumlah: e.target.value })}
-      required
-    />
-    <small className="hint">Maks: {alatDipilih?.stok ?? "-"}</small>
-  </div>
+              <div className="form-group">
+                <label>Jumlah</label>
+                <input
+                  type="number"
+                  min="1"
+                  max={alatDipilih?.stok || 999}
+                  value={formPinjam.jumlah}
+                  onChange={(e) => setFormPinjam({ ...formPinjam, jumlah: e.target.value })}
+                  required
+                />
+                <small className="hint">Maks: {alatDipilih?.stok ?? "-"}</small>
+              </div>
 
-  <div className="form-row">
-    <div className="form-group">
-      <label>Tgl Pinjam</label>
-      <input
-        type="date"
-        value={formPinjam.tgl_pinjam}
-        onChange={(e) =>
-          setFormPinjam({ ...formPinjam, tgl_pinjam: e.target.value })
-        }
-        required
-      />
-      <small className="hint">Mulai</small>
-    </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Tgl Pinjam</label>
+                  <input
+                    type="date"
+                    value={formPinjam.tgl_pinjam}
+                    onChange={(e) => setFormPinjam({ ...formPinjam, tgl_pinjam: e.target.value })}
+                    required
+                  />
+                  <small className="hint">Mulai</small>
+                </div>
 
-    <div className="form-group">
-      <label>Tgl Kembali</label>
-      <input
-        type="date"
-        value={formPinjam.tgl_kembali_rencana}
-        onChange={(e) =>
-          setFormPinjam({
-            ...formPinjam,
-            tgl_kembali_rencana: e.target.value,
-          })
-        }
-      />
-      <small className="hint">Opsional</small>
-    </div>
-  </div>
+                <div className="form-group">
+                  <label>Tgl Kembali</label>
+                  <input
+                    type="date"
+                    value={formPinjam.tgl_kembali_rencana}
+                    onChange={(e) =>
+                      setFormPinjam({
+                        ...formPinjam,
+                        tgl_kembali_rencana: e.target.value,
+                      })
+                    }
+                  />
+                  <small className="hint">Opsional</small>
+                </div>
+              </div>
 
-  <div className="form-group">
-    <label>No HP</label>
-    <input
-      type="tel"
-      placeholder="08xxxxxxxxxx"
-      value={formPinjam.no_hp}
-      onChange={(e) =>
-        setFormPinjam({ ...formPinjam, no_hp: e.target.value })
-      }
-      required
-    />
-    <small className="hint">Untuk konfirmasi</small>
-  </div>
+              <div className="form-group">
+                <label>No HP</label>
+                <input
+                  type="tel"
+                  placeholder="08xxxxxxxxxx"
+                  value={formPinjam.no_hp}
+                  onChange={(e) => setFormPinjam({ ...formPinjam, no_hp: e.target.value })}
+                  required
+                />
+                <small className="hint">Untuk konfirmasi</small>
+              </div>
 
-  <div className="form-group">
-    <label>Keperluan</label>
-    <textarea
-      placeholder="Contoh: Praktikum / TA / Penelitian"
-      value={formPinjam.keperluan}
-      onChange={(e) =>
-        setFormPinjam({ ...formPinjam, keperluan: e.target.value })
-      }
-      rows={2}
-    />
-    <small className="hint">Tujuan</small>
-  </div>
+              <div className="form-group">
+                <label>Keperluan</label>
+                <textarea
+                  placeholder="Contoh: Praktikum / TA / Penelitian"
+                  value={formPinjam.keperluan}
+                  onChange={(e) => setFormPinjam({ ...formPinjam, keperluan: e.target.value })}
+                  rows={2}
+                />
+                <small className="hint">Tujuan</small>
+              </div>
 
-  <div className="modal-actions">
-    <button type="button" onClick={closeModal} className="btn-secondary">
-      Batal
-    </button>
-    <button type="submit" className="btn-primary">
-      Ajukan
-    </button>
-  </div>
-</form>
+              <div className="modal-actions">
+                <button type="button" onClick={closeModal} className="btn-secondary">
+                  Batal
+                </button>
+                <button type="submit" className="btn-primary">
+                  Ajukan
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
+
+      {showDetail && detailData && (
+  <div className="modal-overlay" onClick={closeDetailModal}>
+    <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <h3>Detail Peminjaman</h3>
+
+<div className="detail-list" style={{ color: "#111" }}>
+  <p><strong>Nama Alat:</strong> {detailData?.nama_alat || "-"}</p>
+  <p><strong>Tanggal Pinjam:</strong> {detailData?.tanggal_pinjam || detailData?.tglPinjam || "-"}</p>
+  <p><strong>Tanggal Kembali:</strong> {detailData?.tanggal_kembali || detailData?.tglKembali || "-"}</p>
+
+  <p><strong>Status:</strong> {detailData?.statusTampil || getStatusTampil(detailData)}</p>
+
+  {(() => {
+    const telatHari = Number(detailData?.terlambatHari ?? hitungTerlambatHariFront(detailData));
+    const denda = Number(detailData?.denda ?? telatHari * DENDA_PER_HARI);
+
+    return (
+      <>
+        <p><strong>Terlambat:</strong> {telatHari} hari</p>
+        <p><strong>Denda:</strong> Rp {rupiah(denda)}</p>
+      </>
+    );
+  })()}
+
+  {String(detailData?.status || "").toLowerCase() === "ditolak" && (
+    <p style={{ color: "#b00020" }}>
+      <strong>Alasan Ditolak:</strong> {detailData?.alasan_tolak || "-"}
+    </p>
+  )}
+</div>
+
+
+      <div className="modal-actions">
+        {(detailData.status === "dipinjam" ||
+          displayStatus(detailData) === "terlambat") && (
+          <button
+            className="btn-primary"
+            onClick={() => {
+              handleKembalikan(detailData.id_peminjaman || detailData.id);
+              closeDetailModal();
+            }}
+          >
+            Kembalikan
+          </button>
+        )}
+
+        <button className="btn-secondary" onClick={closeDetailModal}>
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

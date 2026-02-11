@@ -2,68 +2,55 @@ const db = require("../models/db");
 
 const DENDA_PER_HARI = 2000; // silakan ubah
 
-function diffDays(dateA, dateB) {
-  const a = new Date(dateA);
-  const b = new Date(dateB);
-  a.setHours(0, 0, 0, 0);
-  b.setHours(0, 0, 0, 0);
-  const ms = b - a;
-  return Math.floor(ms / (1000 * 60 * 60 * 24));
-}
-
 exports.index = async (req, res) => {
   try {
-    // ambil data peminjaman + join user & alat
-const [rows] = await db.query(`
-  SELECT
-    p.id_peminjaman AS id,
-    u.username AS peminjam,
-    '-' AS kelas,                 -- ✅ tidak ambil dari DB
-    a.nama_alat AS alat,
-    1 AS qty,
-    p.tanggal_pinjam AS tglPinjam,
-    p.tanggal_kembali AS tglKembali,
-    p.status,
-    p.created_at
-  FROM peminjaman p
-  JOIN users u ON u.id_user = p.id_user
-  JOIN alat a ON a.id_alat = p.id_alat
-  ORDER BY p.created_at DESC
-`);
+    const [rows] = await db.query(`
+      SELECT
+        p.id_peminjaman AS id,
+        u.username AS peminjam,
+        '-' AS kelas,
+        a.nama_alat AS alat,
+        1 AS qty,
+        p.tanggal_pinjam AS tglPinjam,
+        p.tanggal_kembali AS tglKembali,
+        p.status,
+        p.created_at,
 
-const mapped = rows.map((r) => {
-  const statusDb = String(r.status || "").toLowerCase();
+        CASE
+          WHEN LOWER(p.status) IN ('dipinjam','terlambat','menunggu pengembalian')
+               AND p.tanggal_kembali IS NOT NULL
+          THEN GREATEST(0, DATEDIFF(CURDATE(), DATE(p.tanggal_kembali)))
+          ELSE 0
+        END AS terlambatHari
 
-  const today = new Date();
+      FROM peminjaman p
+      JOIN users u ON u.id_user = p.id_user
+      JOIN alat a ON a.id_alat = p.id_alat
+      ORDER BY p.created_at DESC
+    `);
 
-  // ✅ hitung telat hanya kalau status masih dipinjam/terlambat (bukan menunggu pengembalian)
-  let terlambatHari = 0;
-  if (r.tglKembali && (statusDb === "dipinjam" || statusDb === "terlambat")) {
-    terlambatHari = Math.max(0, diffDays(r.tglKembali, today));
-  }
+    const mapped = rows.map((r) => {
+      const statusDb = String(r.status || "").toLowerCase();
 
-  const denda = terlambatHari * DENDA_PER_HARI;
+      const denda =
+        ["dipinjam", "terlambat", "menunggu pengembalian"].includes(statusDb)
+          ? Number(r.terlambatHari || 0) * DENDA_PER_HARI
+          : 0;
 
-  // ✅ status tampilan (badge) tapi JANGAN timpa status DB
-  let statusTampil = r.status || "-";
-  if ((statusDb === "dipinjam" || statusDb === "terlambat") && terlambatHari > 0) {
-    statusTampil = "terlambat";
-  }
+const statusTampil =
+  statusDb === "menunggu pengembalian"
+    ? "menunggu pengembalian"
+    : (Number(r.terlambatHari || 0) > 0 && ["dipinjam", "terlambat"].includes(statusDb))
+      ? "terlambat"
+      : r.status;
 
-  return {
-    ...r,
-    status: r.status,        // ✅ status asli dari DB tetap
-    statusTampil,            // ✅ tambahan untuk UI
-    terlambatHari,
-    denda,
-  };
-});
+      return { ...r, statusTampil, denda };
+    });
 
-res.json(mapped);
-
+    return res.json(mapped); // ✅ WAJIB
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Gagal ambil data pengembalian" });
+    return res.status(500).json({ message: "Gagal ambil data pengembalian" });
   }
 };
 

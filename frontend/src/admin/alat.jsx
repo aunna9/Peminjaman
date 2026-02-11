@@ -278,7 +278,7 @@ export default function Alat() {
     </div>
   </div>
 )}
-
+.
 
       {loading ? (
         <div className="loading">Memuat data...</div>

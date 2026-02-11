@@ -214,3 +214,26 @@
 .btn-logout:hover {
   background: #d00000;
 }
+.alat-toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin: 12px 0 16px;
+}
+
+.alat-search{
+  flex:1;
+  padding:10px 12px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  outline:none;
+}
+.modal {
+  background: #fff;
+  color: #111;
+}
+
+.detail-list p {
+  margin: 6px 0;
+  color: #111;
+}
