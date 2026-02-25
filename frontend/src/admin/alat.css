@@ -1,11 +1,23 @@
+:root{
+  --bg:#f8fafc;
+  --panel:#ffffff;
+  --soft:#eff6ff;
+  --navy:#1E3A8A;
+  --blue:#3B82F6;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e5e7eb;
+  --shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
 /* ===== CONTAINER UTAMA ===== */
 .alat-container {
   padding: 25px;
-  background-color: #fcfcfc;
+  background-color: var(--bg);
   min-height: 100vh;
   width: 100%;
   box-sizing: border-box;
-  color: #1a1a1a;
+  color: var(--text);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
@@ -14,13 +26,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 25px;
+  margin-bottom: 18px;
 }
 
 .alat-header h1 {
-  color: #d00000;
+  color: var(--navy);
   font-weight: 900;
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .alat-header h1::after {
@@ -28,11 +41,54 @@
   display: block;
   width: 70px;
   height: 4px;
-  background: #d00000;
+  background: linear-gradient(90deg, var(--navy), var(--blue));
   margin-top: 10px;
   border-radius: 999px;
 }
 
+/* ===== TOOLBAR (SEARCH + FILTER) ===== */
+.alat-toolbar{
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0 16px;
+  flex-wrap: wrap;
+}
+
+.alat-search{
+  flex: 1;
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(15,23,42,0.04);
+}
+
+.alat-search:focus{
+  border-color: rgba(59,130,246,0.55);
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.16);
+}
+
+.alat-filter{
+  min-width: 200px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 2px 10px rgba(15,23,42,0.04);
+}
+
+.alat-filter:focus{
+  border-color: rgba(59,130,246,0.55);
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.16);
+}
+
+/* ===== FORM ===== */
 .alat-form {
   display: grid;
   gap: 12px;
@@ -40,9 +96,10 @@
 
 .alat-form h3 {
   margin-top: 0;
-  color: #d00000;
-  font-size: 1.2rem;
-  margin-bottom: 15px;
+  color: var(--navy);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  font-weight: 900;
 }
 
 .form-grid {
@@ -52,31 +109,37 @@
 }
 
 .alat-form input,
-.alat-form select {
+.alat-form select,
+.alat-form textarea {
   width: 100%;
-  background: #fff;
-  border: 1px solid #e6e6e6;
-  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   padding: 12px 14px;
   font-size: 14px;
+  color: var(--text) !important;
+  outline: none;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.04);
 }
 
 .form-grid input:focus, 
-.form-grid select:focus {
-  border-color: #d00000;
-  box-shadow: 0 0 0 3px rgba(208, 0, 0, 0.1);
+.form-grid select:focus,
+.alat-form textarea:focus {
+  border-color: rgba(59,130,246,0.55);
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.16);
 }
 
 .form-actions {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 
 /* ===== TABLE BOX ===== */
 .table-box {
-  background: #ffeccd; /* Warna kuning muda sesuai request awal */
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  background: linear-gradient(180deg, var(--soft) 0%, var(--panel) 100%);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(30,58,138,0.12);
   overflow-x: auto;
 }
 
@@ -84,7 +147,7 @@
   width: 100%;
   border-collapse: collapse;
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
 }
 
@@ -94,97 +157,116 @@
 }
 
 .alat-table th {
-  background-color: #d00000;
-  color: #f5f3dc;
-  padding: 15px;
+  background: linear-gradient(90deg, var(--navy), var(--blue));
+  color: #eef2ff;
+  padding: 14px 15px;
   text-transform: uppercase;
   font-size: 12px;
   letter-spacing: 1px;
   text-align: left;
+  white-space: nowrap;
 }
 
 .alat-table td {
-  padding: 14px;
-  border-bottom: 1px solid #eee;
-  color: #333;
+  padding: 14px 15px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
   font-size: 14px;
 }
 
 .alat-table tbody tr:hover {
-  background-color: rgba(208, 0, 0, 0.03);
+  background-color: rgba(59, 130, 246, 0.08);
 }
 
 /* ===== BUTTONS ===== */
 .btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 900;
   cursor: pointer;
-  transition: 0.3s;
+  transition: 0.2s;
   border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 
-.btn-primary {
-  background: #d00000;
+.btn-primary,
+.btn-save {
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 55%, #1E40AF 100%);
   color: white;
+  box-shadow: 0 10px 16px rgba(30,58,138,0.20);
 }
 
-.btn-primary:hover {
-  background: #a80000;
+.btn-primary:hover,
+.btn-save:hover {
   transform: translateY(-2px);
+  box-shadow: 0 14px 20px rgba(30,58,138,0.26);
 }
 
 .btn-save {
-  background: #c90000;
-  color: white;
   width: 100%;
 }
 
 .btn-edit {
-  background: #cc0000;
-  color: #000;
-  padding: 6px 12px;
-  margin-right: 5px;
-  border-radius: 6px;
+  background: rgba(59,130,246,0.14);
+  color: var(--navy);
+  padding: 7px 12px;
+  border-radius: 10px;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 900;
+  border: 1px solid rgba(59,130,246,0.30);
+}
+
+.btn-edit:hover{
+  background: rgba(59,130,246,0.22);
 }
 
 .btn-delete {
-  background: #6e0b00;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 6px;
+  background: rgba(15,23,42,0.10);
+  color: #0f172a;
+  padding: 7px 12px;
+  border-radius: 10px;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 900;
+  border: 1px solid rgba(15,23,42,0.18);
 }
 
-/* ===== BADGES ===== */
+.btn-delete:hover{
+  background: rgba(15,23,42,0.16);
+}
+
+/* ===== BADGES (KONDISI) ===== */
 .badge {
-  padding: 4px 10px;
-  border-radius: 20px;
+  padding: 5px 10px;
+  border-radius: 999px;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 900;
   text-transform: uppercase;
+  border: 1px solid rgba(15,23,42,0.10);
 }
 
-.cond-baik { background: #d4edda; color: #af0808; }
-.cond-rusak-ringan { background: #fff3cd; color: #856404; }
-.cond-rusak-berat { background: #f8d7da; color: #721c24; }
-
-/* Animation */
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+.cond-baik { 
+  background: rgba(34,197,94,0.12);
+  color: #166534;
+  border-color: rgba(34,197,94,0.22);
 }
+.cond-rusak-ringan { 
+  background: rgba(245,158,11,0.14);
+  color: #92400e;
+  border-color: rgba(245,158,11,0.24);
+}
+.cond-rusak-berat { 
+  background: rgba(239,68,68,0.12);
+  color: #991b1b;
+  border-color: rgba(239,68,68,0.24);
+}
+
 /* ===== MODAL ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(2, 6, 23, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -195,23 +277,17 @@
 .modal-content {
   width: 100%;
   max-width: 720px;
-  background: #fff;
+  background: var(--panel);
   border-radius: 16px;
-  border: 1px solid #eee;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(30,58,138,0.12);
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.28);
   padding: 18px;
   animation: popIn 0.15s ease-out;
 }
 
 @keyframes popIn {
-  from {
-    transform: translateY(8px);
-    opacity: 0.7;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  from { transform: translateY(8px); opacity: 0.7; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
 .modal-header {
@@ -225,14 +301,14 @@
 .modal-header h3 {
   margin: 0;
   font-size: 18px;
-  font-weight: 800;
-  color: #111;
+  font-weight: 900;
+  color: var(--text);
 }
 
 .modal-close {
   border: none;
-  background: #f1f1f1;
-  color: #111;
+  background: rgba(15,23,42,0.06);
+  color: var(--text);
   width: 36px;
   height: 36px;
   border-radius: 10px;
@@ -241,9 +317,7 @@
   line-height: 1;
 }
 
-.modal-close:hover {
-  filter: brightness(0.98);
-}
+.modal-close:hover { filter: brightness(0.98); }
 
 /* grid 2 kolom untuk stok + kondisi */
 .form-grid-2 {
@@ -253,73 +327,43 @@
 }
 
 @media (max-width: 600px) {
-  .form-grid-2 {
-    grid-template-columns: 1fr;
-  }
-}
-/* ===== FIX SELECT DROPDOWN TEXT ===== */
-.alat-form select {
-  color: #111;              /* teks terlihat */
-  background-color: #fff;   /* background putih */
-}
-
-/* placeholder option (yang value="") */
-.alat-form select option[value=""] {
-  color: #777;
-}
-
-/* option normal */
-.alat-form select option {
-  color: #111;
-  background: #fff;
-}
-
-/* saat dropdown dibuka & item dipilih */
-.alat-form select option:checked {
-  background-color: #d00000;
-  color: #fff;
-}
-/* ===== FIX TEXT INPUT DI MODAL/FORM ALAT ===== */
-.alat-form input,
-.alat-form select,
-.alat-form textarea {
-  color: #111 !important;            /* teks jadi hitam */
-  background-color: #fff !important; /* background putih */
+  .form-grid-2 { grid-template-columns: 1fr; }
 }
 
 /* placeholder biar jelas */
 .alat-form input::placeholder,
 .alat-form textarea::placeholder {
-  color: #888 !important;
+  color: #94a3b8 !important;
 }
 
-/* kalau ada autofill dari chrome yang bikin aneh */
+/* autofill chrome */
 .alat-form input:-webkit-autofill {
-  -webkit-text-fill-color: #111 !important;
-  box-shadow: 0 0 0px 1000px #fff inset !important;
-}
-.alat-toolbar{
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin: 12px 0 16px;
-  flex-wrap: wrap;
+  -webkit-text-fill-color: var(--text) !important;
+  box-shadow: 0 0 0px 1000px var(--panel) inset !important;
 }
 
-.alat-search{
-  flex: 1;
-  min-width: 220px;
-  padding: 10px 12px;
-  border: 1px solid #ffffff;
-  border-radius: 10px;
-  outline: none;
+thead {
+  background: #1E3A8A; /* solid navy */
 }
 
-.alat-filter{
-  min-width: 200px;
-  padding: 10px 12px;
-  border: 1px solid #020202;
-  border-radius: 10px;
-  outline: none;
-  background: #000000;
+th {
+  padding: 14px;
+  color: #ffffff;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: left;
+  font-weight: 800;
+}
+
+/* ===== ALTERNATIF: HEADER SOFT (TETAP CLEAN) ===== */
+.alat-table thead{ background: var(--navy); }
+.alat-table th{ background: transparent; color:#fff; font-weight:900; }
+
+.alat-table{
+  border: 1px solid rgba(30,58,138,0.12);
+}
+
+.alat-table tbody tr:nth-child(even){
+  background: rgba(59,130,246,0.04);
 }

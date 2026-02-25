@@ -168,7 +168,7 @@ return (
       <div className="dashboard-main">
         {/* cards */}
         <div className="grid">
-          <div className="card">
+          <div className="panel">
             <div className="cardTop">
               <div className="cardLabel">Peminjaman Aktif</div>
             </div>
@@ -176,7 +176,7 @@ return (
             <div className="cardHint">Dari /api/peminjaman</div>
           </div>
 
-          <div className="card">
+          <div className="panel">
             <div className="cardTop">
               <div className="cardLabel">Menunggu Persetujuan</div>
             </div>
@@ -187,7 +187,7 @@ return (
 
         {/* tabel peminjaman terbaru */}
         <div className="section">
-          <div className="card">
+          <div className="panel">
             <h3 className="sectionTitle">Peminjaman Terbaru</h3>
             <div className="tableWrap">
             <table className="table">

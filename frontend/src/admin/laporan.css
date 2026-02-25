@@ -1,8 +1,50 @@
-.laporan-page { padding: 24px; }
-.laporan-title { font-size: 42px; margin: 0; color: #b10000; letter-spacing: 1px; }
-.laporan-sub { margin-top: 6px; color: #333; }
+:root{
+  --bg:#f8fafc;
+  --panel:#ffffff;
+  --soft:#eff6ff;
+  --navy:#1E3A8A;
+  --blue:#3B82F6;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e5e7eb;
+  --shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
 
-.laporan-toolbar {
+/* ===== PAGE ===== */
+.laporan-page{
+  padding: 24px;
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+}
+
+.laporan-title{
+  font-size: 42px;
+  margin: 0;
+  color: var(--navy);
+  letter-spacing: 1px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.laporan-title::after{
+  content:"";
+  display:block;
+  width:70px;
+  height:4px;
+  margin-top:10px;
+  border-radius:999px;
+  background: linear-gradient(90deg, var(--navy), var(--blue));
+}
+
+.laporan-sub{
+  margin-top: 6px;
+  color: #475569;
+  font-weight: 600;
+}
+
+/* ===== TOOLBAR ===== */
+.laporan-toolbar{
   margin: 18px 0 14px;
   display: flex;
   gap: 14px;
@@ -10,32 +52,155 @@
   flex-wrap: wrap;
 }
 
-.laporan-filter { display: flex; flex-direction: column; gap: 6px; }
-.laporan-filter label { font-size: 12px; color: #444; }
-.laporan-filter input { padding: 10px 12px; border-radius: 10px; border: 1px solid #ddd; }
+.laporan-filter{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-.btn {
+.laporan-filter label{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.laporan-filter input{
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  outline: none;
+  box-shadow: 0 2px 10px rgba(15,23,42,0.04);
+}
+
+.laporan-filter input:focus{
+  border-color: rgba(59,130,246,0.55);
+  box-shadow: 0 0 0 4px rgba(59,130,246,0.16);
+}
+
+/* ===== BUTTONS ===== */
+.btn{
   padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid #b10000;
-  background: #b10000;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 55%, #1E40AF 100%);
   color: white;
   cursor: pointer;
+  font-weight: 900;
+  box-shadow: 0 10px 16px rgba(30,58,138,0.20);
+  transition: 0.18s ease;
 }
-.btn.outline {
+
+.btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 14px 20px rgba(30,58,138,0.26);
+}
+
+.btn:active{
+  transform: translateY(0px) scale(0.99);
+}
+
+.btn.outline{
   background: transparent;
-  color: #b10000;
+  color: var(--navy);
+  border: 1px solid rgba(59,130,246,0.40);
+  box-shadow: none;
 }
 
-.laporan-error { background: #ffe2e2; border: 1px solid #ffb3b3; padding: 10px 12px; border-radius: 10px; margin: 10px 0; }
-.laporan-loading { padding: 14px; }
+.btn.outline:hover{
+  background: rgba(59,130,246,0.10);
+  transform: translateY(-1px);
+}
 
-.laporan-cards { display: grid; grid-template-columns: repeat(5, minmax(140px, 1fr)); gap: 12px; margin: 14px 0; }
-.card { background: #fdecc8; border-radius: 14px; padding: 14px; border: 1px solid #f2d9a7; }
-.card-label { font-size: 12px; color: #555; }
-.card-num { font-size: 30px; font-weight: 800; color: #b10000; margin-top: 6px; }
+/* ===== STATES ===== */
+.laporan-error{
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.22);
+  color: var(--navy);
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin: 10px 0;
+  font-weight: 800;
+}
 
-.laporan-tablewrap { background: #fdecc8; border: 1px solid #f2d9a7; border-radius: 14px; padding: 14px; overflow: auto; }
-.laporan-table { width: 100%; border-collapse: collapse; }
-.laporan-table th { text-align: left; background: #b10000; color: white; padding: 10px; }
-.laporan-table td { padding: 10px; border-bottom: 1px solid #f2d9a7; }
+.laporan-loading{ padding: 14px; }
+
+/* ===== CARDS ===== */
+.laporan-cards{
+  display: grid;
+  grid-template-columns: repeat(5, minmax(140px, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.card{
+  background: linear-gradient(180deg, var(--soft) 0%, var(--panel) 100%);
+  border-radius: 16px;
+  padding: 14px;
+  border: 1px solid rgba(30,58,138,0.12);
+  box-shadow: var(--shadow);
+}
+
+.card-label{
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.card-num{
+  font-size: 30px;
+  font-weight: 900;
+  color: var(--navy);
+  margin-top: 6px;
+}
+
+/* ===== TABLE ===== */
+.laporan-tablewrap{
+  background: var(--panel);
+  border: 1px solid rgba(30,58,138,0.12);
+  border-radius: 16px;
+  padding: 14px;
+  overflow: auto;
+  box-shadow: var(--shadow);
+}
+
+.laporan-table{
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.laporan-table th{
+  text-align: left;
+  background: linear-gradient(90deg, var(--navy), var(--blue));
+  color: #eef2ff;
+  padding: 12px 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.laporan-table td{
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.laporan-table tbody tr:hover{
+  background: rgba(59,130,246,0.08);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1100px){
+  .laporan-cards{
+    grid-template-columns: repeat(2, minmax(140px, 1fr));
+  }
+}
