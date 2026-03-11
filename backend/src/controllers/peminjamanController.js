@@ -1,5 +1,72 @@
 const Peminjaman = require('../models/peminjaman')
-const db = require('../models/db');
+const db = require("../models/db");
+
+exports.bulkCreate = async (req, res) => {
+  const userId = req.user?.id || req.user?.id_user;
+  const { tanggal_pinjam, tanggal_kembali, no_hp, items } = req.body;
+
+  if (!userId) return res.status(401).json({ message: "Sesi habis" });
+  if (!tanggal_pinjam) return res.status(400).json({ message: "Tanggal pinjam wajib" });
+  if (!no_hp) return res.status(400).json({ message: "No HP wajib" });
+  if (!Array.isArray(items) || items.length === 0)
+    return res.status(400).json({ message: "Keranjang kosong" });
+
+  let conn;
+
+  try {
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    for (const item of items) {
+      const id_alat = Number(item.id_alat);
+      const jumlah = Number(item.jumlah || 1);
+
+      // cek stok + lock row
+      const [alatRows] = await conn.query(
+        "SELECT stok FROM alat WHERE id_alat = ? FOR UPDATE",
+        [id_alat]
+      );
+
+      if (alatRows.length === 0)
+        throw new Error(`Alat tidak ditemukan (id=${id_alat})`);
+
+      const stok = Number(alatRows[0].stok);
+      if (stok < jumlah)
+        throw new Error(`Stok tidak cukup untuk alat id=${id_alat}`);
+
+      // insert sebanyak jumlah
+      for (let i = 0; i < jumlah; i++) {
+        await conn.query(
+          `INSERT INTO peminjaman 
+           (id_user, id_alat, no_hp, tanggal_pinjam, tanggal_kembali, status)
+           VALUES (?, ?, ?, ?, ?, 'menunggu')`,
+          [
+            userId,
+            id_alat,
+            no_hp,
+            tanggal_pinjam,
+            tanggal_kembali || null,
+          ]
+        );
+      }
+
+      // kurangi stok
+      await conn.query(
+        "UPDATE alat SET stok = stok - ? WHERE id_alat = ?",
+        [jumlah, id_alat]
+      );
+    }
+
+    await conn.commit();
+    return res.status(201).json({ message: "Pengajuan bulk berhasil" });
+
+  } catch (err) {
+    if (conn) await conn.rollback();
+    return res.status(400).json({ message: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+};
 
 exports.index = async (req, res) => {
   try {

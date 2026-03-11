@@ -85,15 +85,19 @@ function App() {
         </Route>
 
         {/* ===== PEMINJAM ===== */}
-        <Route
-          path="/peminjam"
-          element={
-            <ProtectedRoute
-              element={<Peminjam />}
-              allowedRoles={["peminjam"]}
-            />
-          }
-        />
+{/* ===== PEMINJAM ===== */}
+<Route
+  path="/peminjam"
+  element={
+    <ProtectedRoute
+      element={<AdminLayout />} // Gunakan layout yang sama agar ada Sidebar-nya
+      allowedRoles={["peminjam"]}
+    />
+  }
+>
+  {/* Index berarti saat akses /peminjam langsung muncul halaman ini */}
+  <Route index element={<Peminjam />} /> 
+</Route>
 
         {/* ===== FALLBACK ===== */}
         <Route path="*" element={<Navigate to="/login" replace />} />

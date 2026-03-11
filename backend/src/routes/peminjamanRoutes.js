@@ -42,5 +42,6 @@ router.put("/:id", authJWT, onlyAdminOrPetugas, controller.update);
 router.delete("/:id", authJWT, onlyAdminOrPetugas, controller.remove);
 router.post("/", authJWT, onlyPeminjam, controller.create);
 router.put("/:id/kembalikan", authJWT, onlyPeminjam, controller.requestReturn);
+router.post("/bulk", authJWT, controller.bulkCreate);
 
 module.exports = router;

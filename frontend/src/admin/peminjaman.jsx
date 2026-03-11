@@ -83,7 +83,7 @@ export default function Peminjaman() {
     const x = String(st || "").toLowerCase();
     if (x === "terlambat") return "badge red";
     if (x.includes("menunggu pengembalian")) return "badge red";
-    if (x === "menunggu") return "badge"; // bebas kamu mau style khusus
+    if (x === "menunggu") return "badge";
     if (x === "dipinjam") return "badge";
     if (x === "ditolak") return "badge";
     if (x.includes("kembali") || x.includes("selesai") || x.includes("dikembalikan")) return "badge";

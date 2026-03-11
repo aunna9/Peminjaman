@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import "./sidebar.css";
 
-const Sidebar = () => {
+const Sidebar = ({ currentTab, setTab }) => {
 const role = (sessionStorage.getItem("role") || "").toLowerCase();
   const navigate = useNavigate();
 
@@ -99,17 +99,30 @@ const handleLogout = () => {
           </>
         )}
 
-        {/* ===== PEMINJAM ===== */}
 {/* ===== PEMINJAM ===== */}
 {role === "peminjam" && (
-  <>
-    <li>
-      <Link to="/peminjam" className="menu-link">
-        <FaTools /> Peminjam
-      </Link>
-    </li>
-  </>
-)}
+          <>
+            <li>
+              {/* Gunakan button agar bisa memicu setTab di peminjam.jsx */}
+              <button 
+                className={`menu-link ${currentTab === "alat" ? "active" : ""}`}
+                onClick={() => setTab("alat")}
+                style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+              >
+                <FaTools /> Daftar Alat
+              </button>
+            </li>
+            <li>
+              <button 
+                className={`menu-link ${currentTab === "pinjaman" ? "active" : ""}`}
+                onClick={() => setTab("pinjaman")}
+                style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none', padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+              >
+                <FaExchangeAlt /> Pinjaman Saya
+              </button>
+            </li>
+          </>
+        )}
 
         {/* ===== LOGOUT (semua role) ===== */}
         <li className="logout">
