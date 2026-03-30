@@ -19,6 +19,7 @@
 
 /* ===== TITLE ===== */
 .peminjam-title{
+  font-size: 38px;
   color: var(--navy);
   font-weight: 900;
   letter-spacing: 1px;

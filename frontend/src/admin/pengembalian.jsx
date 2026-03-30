@@ -103,7 +103,7 @@ export default function Pengembalian() {
   return (
     <div className="pengembalian-container">
       <div className="pengembalian-header">
-        <h1>Data Pengembalian</h1>
+        <h1>Data Pengembalian Laboratorium Sekolah</h1>
         <p>Memantau pengembalian + hitung denda kalau telat</p>
       </div>
 

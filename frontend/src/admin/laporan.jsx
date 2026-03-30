@@ -130,7 +130,7 @@ const stats = useMemo(() => {
 
   return (
     <div className="laporan-page">
-      <h1 className="laporan-title">Laporan (Petugas)</h1>
+      <h1 className="laporan-title">Laporan Peminjaman Laboratorium sekolah</h1>
       <p className="laporan-sub">Rekap peminjaman berdasarkan rentang tanggal.</p>
 
       <div className="laporan-toolbar">

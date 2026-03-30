@@ -10,6 +10,10 @@
   --shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
+*{
+  box-sizing: border-box;
+}
+
 /* ===== WRAPPER ===== */
 .kategori-container {
   padding: 25px;
@@ -20,6 +24,11 @@
 }
 
 /* ===== HEADER ===== */
+.kategori-header {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
 .kategori-header h1 {
   color: var(--navy);
   font-weight: 900;
@@ -43,18 +52,18 @@
   color: #475569;
   font-weight: 600;
   margin-bottom: 18px;
-  max-width: 800px;
+  max-width: 100%;
   line-height: 1.5;
 }
 
 /* ===== FORM CARD ===== */
 .kategori-form-card {
+  width: 100%;
   background: linear-gradient(180deg, var(--soft) 0%, var(--panel) 100%);
   border: 1px solid rgba(30,58,138,0.12);
   border-radius: 16px;
   padding: 18px;
   box-shadow: var(--shadow);
-  max-width: 980px;
 }
 
 .kategori-form {
@@ -92,6 +101,7 @@
   display: flex;
   gap: 10px;
   margin-top: 4px;
+  flex-wrap: wrap;
 }
 
 .btn-action {
@@ -157,23 +167,24 @@
 /* ===== ERROR ===== */
 .kategori-error {
   margin: 12px 0;
+  width: 100%;
   background: rgba(59,130,246,0.12);
   border: 1px solid rgba(59,130,246,0.22);
   color: var(--navy);
   padding: 10px 12px;
   border-radius: 12px;
   font-weight: 800;
-  max-width: 980px;
 }
 
 /* ===== TABLE ===== */
 .kategori-table-container {
   margin-top: 18px;
-  max-width: 980px;
+  width: 100%;
   background: var(--panel);
   border: 1px solid rgba(30,58,138,0.12);
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   box-shadow: var(--shadow);
 }
 

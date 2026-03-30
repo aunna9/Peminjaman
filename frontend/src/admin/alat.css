@@ -32,6 +32,7 @@
 .alat-header h1 {
   color: var(--navy);
   font-weight: 900;
+  font-size: 38px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }

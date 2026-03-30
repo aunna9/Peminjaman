@@ -10,11 +10,37 @@
   --shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
-.usr-wrap{
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 10px 0 30px;
+/* 1. Kontainer Utama (Pendorong Sidebar) */
+.usr-main-container {
+  padding-left: 260px;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* Ganti .usr-wrap kamu dengan ini */
+.usr-wrap {
+  padding: 24px; /* Samakan dengan .laporan-page */
+  max-width: 1200px;
+  margin: 0;
   color: var(--text);
+}
+
+.usr-table-wrap {
+  margin-top: 18px; /* Sama dengan .kategori-table-container */
+  background: var(--panel);
+  border: 1px solid rgba(30,58,138,0.12);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* 5. Ukuran Font (Jika ingin dikecilkan sesuai kategori) */
+.usr-table th,
+.usr-table td {
+  padding: 12px 14px; /* Padding sel sama dengan kategori */
+  font-size: 14px;
 }
 
 /* ===== HEADER ===== */
@@ -22,6 +48,7 @@
   margin: 0;
   color: var(--navy);
   font-weight: 900;
+  font-size: 38px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }

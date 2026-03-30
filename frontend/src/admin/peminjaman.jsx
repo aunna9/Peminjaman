@@ -208,7 +208,7 @@ export default function Peminjaman() {
   return (
     <div className="peminjaman-container">
       <div className="peminjaman-header">
-        <h1>Data Peminjaman</h1>
+        <h1>Data Peminjaman Laboratorium Sekolah</h1>
         <p>Kelola dan pantau seluruh transaksi peminjaman alat laboratorium.</p>
       </div>
 

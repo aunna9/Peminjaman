@@ -24,6 +24,7 @@
   color: var(--navy);
   letter-spacing: 1px;
   font-weight: 900;
+  font-size: 38px;
   text-transform: uppercase;
 }
 
@@ -159,43 +160,57 @@
   margin-top: 6px;
 }
 
-/* ===== TABLE ===== */
-.laporan-tablewrap{
-  background: var(--panel);
-  border: 1px solid rgba(30,58,138,0.12);
+/* ===== TABLE (Disesuaikan agar gradien menyambung) ===== */
+.laporan-tablewrap {
+  background: #ffffff !important; /* Putih bersih sesuai pengembalian */
+  border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 14px;
+  padding: 22px; /* Padding lebih luas agar rapi */
   overflow: auto;
   box-shadow: var(--shadow);
+  margin-top: 10px;
 }
 
-.laporan-table{
+.laporan-table {
   width: 100%;
   border-collapse: collapse;
-  border-radius: 12px;
-  overflow: hidden;
+  /* Hapus border-radius & overflow hidden di sini agar tidak mengganggu gradien thead */
 }
 
-.laporan-table th{
+/* KUNCI: Gradien dipasang di thead agar menyambung dari kiri ke kanan */
+.laporan-table thead {
+  background: linear-gradient(90deg, var(--navy) 0%, var(--blue) 100%) !important;
+}
+
+.laporan-table th {
   text-align: left;
-  background: linear-gradient(90deg, var(--navy), var(--blue));
-  color: #eef2ff;
-  padding: 12px 10px;
+  background: transparent !important; /* WAJIB transparent agar gradien thead terlihat */
+  color: #ffffff;
+  padding: 16px 14px; /* Padding lebih lega sesuai pengembalian */
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   font-size: 12px;
   white-space: nowrap;
+  border: none;
 }
 
-.laporan-table td{
-  padding: 12px 10px;
+/* Styling Baris Tabel */
+.laporan-table td {
+  padding: 16px 14px; /* Samakan dengan header */
   border-bottom: 1px solid var(--border);
   color: var(--text);
+  font-size: 14px;
 }
 
-.laporan-table tbody tr:hover{
-  background: rgba(59,130,246,0.08);
+/* Efek Hover baris yang halus */
+.laporan-table tbody tr:hover {
+  background: #f8fafc !important; /* Warna hover abu-abu sangat muda */
+}
+
+/* Memastikan baris terakhir tidak punya border bawah */
+.laporan-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 /* ===== RESPONSIVE ===== */
